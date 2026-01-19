@@ -4,92 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { drugs } from '@/data/drugs';
 import { personas } from '@/data/personas';
 
-// Custom hook for animated counter
-function useAnimatedCounter(end: number, duration: number = 2000, shouldStart: boolean = false) {
-  const [count, setCount] = useState(0);
-  
-  useEffect(() => {
-    if (!shouldStart) return;
-    
-    let startTime: number;
-    let animationFrame: number;
-    
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
-      
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-    
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration, shouldStart]);
-  
-  return count;
-}
-
-// Custom hook for scroll-triggered animations
-function useScrollAnimation(threshold: number = 0.1) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold }
-    );
-    
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-    
-    return () => observer.disconnect();
-  }, [threshold]);
-  
-  return { ref, isVisible };
-}
-
-// Animated Section Component
-function AnimatedSection({ 
-  children, 
-  direction = 'up', 
-  delay = 0 
-}: { 
-  children: React.ReactNode; 
-  direction?: 'up' | 'down' | 'left' | 'right' | 'scale';
-  delay?: number;
-}) {
-  const { ref, isVisible } = useScrollAnimation();
-  
-  const transforms = {
-    up: 'translateY(40px)',
-    down: 'translateY(-40px)',
-    left: 'translateX(40px)',
-    right: 'translateX(-40px)',
-    scale: 'scale(0.95)'
-  };
-  
-  return (
-    <div
-      ref={ref}
-      style={{
-        transform: isVisible ? 'none' : transforms[direction],
-        opacity: isVisible ? 1 : 0,
-        transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 type Stage = 'landing' | 'training' | 'feedback';
 
 interface Message {
@@ -113,12 +27,22 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
-  const [hoveredPersona, setHoveredPersona] = useState<string | null>(null);
-  const [selectedTherapeutic, setSelectedTherapeutic] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentPersona = personas.find(p => p.id === selectedPersona);
   const currentDrug = drugs.find(d => d.id === selectedDrug);
+
+  // Generate opening line based on persona
+  const getOpeningLine = (persona: typeof personas[0]) => {
+    const openings: Record<string, string> = {
+      'rush': "I have about 90 seconds before my next patient. What do you have for me?",
+      'skeptic': "Alright, I've got some time. What's the data look like for this medication?",
+      'loyalist': "Hi there. I should tell you upfront, I've been happy with my current prescribing patterns, but I'm willing to listen.",
+      'gatekeeper': "Good morning. The doctors are quite busy today. How can I help you?",
+      'curious': "Oh good, I was hoping to learn about some new options. What can you tell me about this medication?"
+    };
+    return openings[persona.id] || "Hello, how can I help you today?";
+  };
 
   // Timer effect
   useEffect(() => {
@@ -141,18 +65,6 @@ export default function Home() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Generate opening line based on persona
-  const getOpeningLine = (persona: typeof personas[0]) => {
-    const openings: Record<string, string> = {
-      'rush': "I have about 90 seconds before my next patient. What do you have for me?",
-      'skeptic': "Alright, I've got some time. What's the data look like for this medication?",
-      'loyalist': "Hi there. I should tell you upfront, I've been happy with my current prescribing patterns, but I'm willing to listen.",
-      'gatekeeper': "Good morning. The doctors are quite busy today. How can I help you?",
-      'curious': "Oh good, I was hoping to learn about some new options. What can you tell me about this medication?"
-    };
-    return openings[persona.id] || "Hello, how can I help you today?";
-  };
 
   const startTraining = useCallback(() => {
     if (!selectedDrug) return;
@@ -249,573 +161,405 @@ export default function Home() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Stats animation refs
-  const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation();
-  const stat1 = useAnimatedCounter(170, 2000, statsVisible);
-  const stat2 = useAnimatedCounter(55, 2000, statsVisible);
-  const stat3 = useAnimatedCounter(847, 2000, statsVisible);
-  const stat4 = useAnimatedCounter(98, 2000, statsVisible);
-
-  const therapeuticAreas = [
-    { name: 'Oncology', drug: 'Keytruda', indication: 'Metastatic NSCLC', data: '44.8% 5-year survival', moa: 'PD-1 inhibitor', competitor: 'Opdivo' },
-    { name: 'Cardiology', drug: 'Entresto', indication: 'Heart Failure (HFrEF)', data: '20% mortality reduction', moa: 'ARNI', competitor: 'ACE inhibitors' },
-    { name: 'Immunology', drug: 'Humira', indication: 'Rheumatoid Arthritis', data: 'ACR50 in 40% patients', moa: 'TNF-alpha inhibitor', competitor: 'Enbrel' },
-    { name: 'Neurology', drug: 'Tecfidera', indication: 'Multiple Sclerosis', data: '53% relapse reduction', moa: 'Nrf2 activator', competitor: 'Gilenya' },
-    { name: 'Diabetes', drug: 'Ozempic', indication: 'Type 2 Diabetes', data: '1.4% A1C reduction', moa: 'GLP-1 agonist', competitor: 'Trulicity' }
-  ];
-
-  // Landing Page
+  // Landing Page - Professional Janek-inspired design
   if (stage === 'landing') {
     return (
-      <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
-        {/* Floating Particles Background */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 bg-[#00D4AA]/20 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `float ${10 + Math.random() * 20}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 5}s`
-              }}
-            />
-          ))}
-        </div>
-
+      <div className="min-h-screen bg-white">
         {/* Navigation */}
-        <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800">
+        <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] flex items-center justify-center font-bold text-slate-950">
-                R
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0066CC] to-[#0052A3] flex items-center justify-center">
+                <span className="text-white font-bold text-lg">R</span>
               </div>
-              <span className="text-xl font-semibold tracking-tight">RepIQ</span>
+              <span className="text-xl font-semibold text-gray-900 tracking-tight">RepIQ</span>
             </div>
-            <div className="hidden md:flex items-center gap-8 text-sm text-slate-400">
-              <a href="#features" className="hover:text-white transition-colors">Features</a>
-              <a href="#personas" className="hover:text-white transition-colors">Personas</a>
-              <a href="#simulator" className="hover:text-white transition-colors">Simulator</a>
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#platform" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">Platform</a>
+              <a href="#personas" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">Personas</a>
+              <a href="#results" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">Results</a>
             </div>
-            <a 
-              href="#simulator"
-              className="px-5 py-2.5 bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] text-slate-950 font-semibold rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Start Training
-            </a>
+            <div className="flex items-center gap-4">
+              <a href="#simulator" className="hidden sm:block text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                Login
+              </a>
+              <a 
+                href="#simulator"
+                className="px-5 py-2.5 bg-[#0066CC] hover:bg-[#0052A3] text-white font-medium rounded-lg transition-colors"
+              >
+                Request Demo
+              </a>
+            </div>
           </div>
         </nav>
 
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center pt-20">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#00D4AA]/5 via-transparent to-transparent" />
-          
-          {/* DNA Helix SVG */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/3 h-[600px] opacity-20">
-            <svg viewBox="0 0 200 600" className="w-full h-full">
-              <defs>
-                <linearGradient id="dnaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00D4AA" />
-                  <stop offset="100%" stopColor="#0EA5E9" />
-                </linearGradient>
-              </defs>
-              {[...Array(12)].map((_, i) => (
-                <g key={i} transform={`translate(0, ${i * 50})`}>
-                  <ellipse cx="60" cy="25" rx="40" ry="8" fill="none" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6">
-                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin={`${i * 0.2}s`} repeatCount="indefinite" />
-                  </ellipse>
-                  <ellipse cx="140" cy="25" rx="40" ry="8" fill="none" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6">
-                    <animate attributeName="opacity" values="1;0.6;1" dur="2s" begin={`${i * 0.2}s`} repeatCount="indefinite" />
-                  </ellipse>
-                  <line x1="100" y1="17" x2="100" y2="33" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.4" />
-                </g>
-              ))}
-            </svg>
-          </div>
-
-          <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
+        <section className="pt-32 pb-20 bg-gradient-to-b from-slate-50 to-white">
+          <div className="max-w-7xl mx-auto px-6">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <AnimatedSection direction="right">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 text-sm text-slate-300 mb-6">
-                  <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-pulse" />
-                  New England's Premier AI Training Platform
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full text-sm text-[#0066CC] font-medium mb-6">
+                  <span className="w-1.5 h-1.5 bg-[#0066CC] rounded-full"></span>
+                  AI-Powered Sales Enablement
                 </div>
-                <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-6">
-                  <span className="bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent">
-                    Master Every
-                  </span>
-                  <br />
-                  Physician Conversation
+                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+                  The intelligent coaching system for{' '}
+                  <span className="text-[#0066CC]">pharmaceutical sales</span>
                 </h1>
-                <p className="text-xl text-slate-400 mb-8 max-w-xl">
-                  AI-powered roleplay simulations trained on real physician behaviors. 
-                  Practice with challenging personas before your next sales call.
+                <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                  RepIQ orchestrates AI-powered physician simulations that help your reps 
+                  master every conversation. Built for the New England healthcare market.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 mb-12">
                   <a 
                     href="#simulator"
-                    className="px-8 py-4 bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] text-slate-950 font-semibold rounded-xl hover:opacity-90 transition-all text-center"
+                    className="px-8 py-4 bg-[#0066CC] hover:bg-[#0052A3] text-white font-semibold rounded-lg transition-colors text-center"
                   >
                     Start Free Training
                   </a>
                   <a 
-                    href="#features"
-                    className="px-8 py-4 border border-slate-700 text-white font-semibold rounded-xl hover:bg-slate-800 transition-all text-center"
+                    href="#platform"
+                    className="px-8 py-4 border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold rounded-lg transition-colors text-center"
                   >
-                    Learn More
+                    See How It Works
                   </a>
                 </div>
-              </AnimatedSection>
-
-              <AnimatedSection direction="left" delay={200}>
-                <div className="relative">
-                  {/* Simulated Chat Preview */}
-                  <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-800 p-6 shadow-2xl shadow-[#00D4AA]/5">
-                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-                      <img 
-                        src="https://i.pravatar.cc/60?img=3"
-                        alt="Dr. Sarah Chen"
-                        className="w-12 h-12 rounded-full ring-2 ring-[#00D4AA]/30"
-                      />
-                      <div>
-                        <h4 className="font-semibold text-white">Dr. Sarah Chen</h4>
-                        <p className="text-sm text-slate-400">Oncologist • Mass General</p>
-                      </div>
-                      <span className="ml-auto px-3 py-1 bg-amber-500/20 text-amber-400 text-xs rounded-full font-medium">
-                        Medium
-                      </span>
+                
+                {/* Trust Indicators */}
+                <div className="pt-8 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 mb-4">Trusted by leading pharmaceutical teams</p>
+                  <div className="flex items-center gap-8 opacity-60">
+                    <div className="text-gray-400 font-semibold">BOSTON MEDICAL</div>
+                    <div className="text-gray-400 font-semibold">MASS GENERAL</div>
+                    <div className="text-gray-400 font-semibold">HARVARD HEALTH</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Hero Image/Demo Area */}
+              <div className="relative">
+                <div className="bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+                  {/* Browser Chrome */}
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
                     </div>
-                    <div className="space-y-4">
-                      <div className="bg-slate-800/50 rounded-xl p-4 max-w-[85%]">
-                        <p className="text-slate-300 text-sm">
-                          "I have about 5 minutes. What makes your drug different from what I'm currently prescribing?"
-                        </p>
-                      </div>
-                      <div className="bg-gradient-to-r from-[#00D4AA]/20 to-[#0EA5E9]/20 rounded-xl p-4 max-w-[85%] ml-auto border border-[#00D4AA]/20">
-                        <p className="text-white text-sm">
-                          "Of course, Dr. Chen. The key differentiator is our 44.8% five-year survival rate in the KEYNOTE-024 trial..."
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-500 text-sm">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                        </div>
-                        AI is typing...
+                    <div className="flex-1 mx-4">
+                      <div className="bg-white rounded px-3 py-1 text-xs text-gray-400 text-center">
+                        repiq.ai/training
                       </div>
                     </div>
                   </div>
                   
-                  {/* Floating Stats Card */}
-                  <div className="absolute -bottom-6 -left-6 bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl" style={{ animation: 'float 6s ease-in-out infinite' }}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#00D4AA]/20 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-[#00D4AA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                      </div>
+                  {/* Demo Content */}
+                  <div className="p-6">
+                    <div className="flex items-center gap-4 mb-6">
+                      <img 
+                        src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
+                        alt="Dr. Sarah Chen"
+                        className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-md"
+                      />
                       <div>
-                        <p className="text-2xl font-bold text-white">+170%</p>
-                        <p className="text-xs text-slate-400">Retention Boost</p>
+                        <h4 className="font-semibold text-gray-900">Dr. Sarah Chen</h4>
+                        <p className="text-sm text-gray-500">Oncologist • Massachusetts General Hospital</p>
+                      </div>
+                      <div className="ml-auto">
+                        <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                          Challenging
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-[85%]">
+                        <p className="text-gray-700 text-sm">
+                          "I have 5 minutes. Walk me through the Phase III data — specifically the progression-free survival compared to standard of care."
+                        </p>
+                      </div>
+                      <div className="bg-[#0066CC] rounded-xl rounded-tr-none p-4 max-w-[85%] ml-auto">
+                        <p className="text-white text-sm">
+                          "Absolutely, Dr. Chen. In KEYNOTE-024, we saw median PFS of 10.3 months versus 6.0 months with chemotherapy..."
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>1:32 remaining</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm text-gray-500">AI Active</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </AnimatedSection>
-            </div>
-          </div>
-
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-500">
-            <span className="text-sm">Scroll to explore</span>
-            <div className="w-6 h-10 border-2 border-slate-700 rounded-full flex justify-center">
-              <div className="w-1.5 h-3 bg-[#00D4AA] rounded-full mt-2 animate-bounce" />
+                
+                {/* Floating Stats Card */}
+                <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl border border-gray-100 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">170%</p>
+                      <p className="text-sm text-gray-500">Training Retention</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Stats Section */}
-        <section ref={statsRef} className="py-20 border-y border-slate-800 bg-slate-900/50">
+        <section className="py-16 bg-[#0066CC]">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="text-center">
-                <p className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent">
-                  {stat1}%
-                </p>
-                <p className="text-slate-400 mt-2">Training Retention</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+              <div>
+                <p className="text-5xl font-bold text-white mb-2">170%</p>
+                <p className="text-blue-100">Boost in Training Retention</p>
               </div>
-              <div className="text-center">
-                <p className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent">
-                  {stat2}%
-                </p>
-                <p className="text-slate-400 mt-2">More Effective</p>
+              <div>
+                <p className="text-5xl font-bold text-white mb-2">55%</p>
+                <p className="text-blue-100">Improvement in Sales Effectiveness</p>
               </div>
-              <div className="text-center">
-                <p className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent">
-                  {stat3}
-                </p>
-                <p className="text-slate-400 mt-2">Reps Trained</p>
+              <div>
+                <p className="text-5xl font-bold text-white mb-2">847</p>
+                <p className="text-blue-100">Reps Trained This Year</p>
               </div>
-              <div className="text-center">
-                <p className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent">
-                  {stat4}%
-                </p>
-                <p className="text-slate-400 mt-2">Satisfaction</p>
+              <div>
+                <p className="text-5xl font-bold text-white mb-2">98%</p>
+                <p className="text-blue-100">User Satisfaction Rate</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section id="features" className="py-24">
+        {/* Platform Section */}
+        <section id="platform" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-6">
-            <AnimatedSection direction="up">
-              <div className="text-center mb-16">
-                <span className="inline-block px-4 py-1.5 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full text-[#00D4AA] text-sm font-medium mb-4">
-                  Platform Features
-                </span>
-                <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                  Everything You Need to
-                  <span className="bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent"> Excel</span>
-                </h2>
-                <p className="text-slate-400 max-w-2xl mx-auto">
-                  Our AI-powered platform simulates real physician interactions, 
-                  giving you the practice you need before high-stakes conversations.
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                An AI-native coaching system that orchestrates sales execution
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Powered by advanced AI, embedded in your sales workflow. 
+                Designed to unify process, skills, and technology.
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-slate-50 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-[#0066CC] rounded-xl flex items-center justify-center mb-6">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">AI Physician Simulations</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Practice with 5 distinct physician personas modeled on real behaviors — 
+                  from time-pressed PCPs to data-driven academic specialists.
                 </p>
               </div>
-            </AnimatedSection>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  ),
-                  title: 'AI Physician Personas',
-                  description: 'Practice with 5 distinct physician types, from the rushed specialist to the skeptical decision-maker.'
-                },
-                {
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  ),
-                  title: 'Real-Time Feedback',
-                  description: 'Get instant scoring and actionable insights after every simulation session.'
-                },
-                {
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-                  ),
-                  title: 'Drug Knowledge Base',
-                  description: 'Comprehensive data on major therapeutics including clinical trial results and competitive positioning.'
-                }
-              ].map((feature, i) => (
-                <AnimatedSection key={i} direction="up" delay={i * 100}>
-                  <div className="group p-8 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-[#00D4AA]/30 transition-all hover:shadow-lg hover:shadow-[#00D4AA]/5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#00D4AA]/20 to-[#0EA5E9]/20 rounded-xl flex items-center justify-center text-[#00D4AA] mb-6 group-hover:scale-110 transition-transform">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                    <p className="text-slate-400">{feature.description}</p>
-                  </div>
-                </AnimatedSection>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Therapeutic Areas */}
-        <section className="py-24 bg-slate-900/50 border-y border-slate-800">
-          <div className="max-w-7xl mx-auto px-6">
-            <AnimatedSection direction="up">
-              <div className="text-center mb-16">
-                <span className="inline-block px-4 py-1.5 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full text-[#00D4AA] text-sm font-medium mb-4">
-                  Therapeutic Coverage
-                </span>
-                <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                  Train Across
-                  <span className="bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent"> Major Areas</span>
-                </h2>
+              
+              <div className="bg-slate-50 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-[#0066CC] rounded-xl flex items-center justify-center mb-6">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-Time Analytics</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Get instant feedback on your performance with detailed scoring 
+                  across clinical knowledge, objection handling, and compliance.
+                </p>
               </div>
-            </AnimatedSection>
-
-            <div className="grid lg:grid-cols-2 gap-8 items-start">
-              <AnimatedSection direction="right">
-                <div className="space-y-3">
-                  {therapeuticAreas.map((area, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedTherapeutic(i)}
-                      className={`w-full p-5 rounded-xl text-left transition-all ${
-                        selectedTherapeutic === i
-                          ? 'bg-gradient-to-r from-[#00D4AA]/20 to-[#0EA5E9]/20 border border-[#00D4AA]/30'
-                          : 'bg-slate-800/50 border border-slate-700 hover:border-slate-600'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className={`font-semibold ${selectedTherapeutic === i ? 'text-[#00D4AA]' : 'text-white'}`}>
-                            {area.name}
-                          </h4>
-                          <p className="text-sm text-slate-400">{area.drug}</p>
-                        </div>
-                        <svg 
-                          className={`w-5 h-5 transition-transform ${selectedTherapeutic === i ? 'text-[#00D4AA] rotate-90' : 'text-slate-500'}`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </button>
-                  ))}
+              
+              <div className="bg-slate-50 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-[#0066CC] rounded-xl flex items-center justify-center mb-6">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
                 </div>
-              </AnimatedSection>
-
-              <AnimatedSection direction="left" delay={200}>
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 sticky top-24">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] rounded-xl flex items-center justify-center text-2xl font-bold text-slate-950">
-                      {therapeuticAreas[selectedTherapeutic].name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-white">{therapeuticAreas[selectedTherapeutic].drug}</h3>
-                      <p className="text-[#00D4AA]">{therapeuticAreas[selectedTherapeutic].name}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="p-4 bg-slate-800/50 rounded-xl">
-                      <p className="text-sm text-slate-400 mb-1">Indication</p>
-                      <p className="text-white">{therapeuticAreas[selectedTherapeutic].indication}</p>
-                    </div>
-                    <div className="p-4 bg-slate-800/50 rounded-xl">
-                      <p className="text-sm text-slate-400 mb-1">Key Clinical Data</p>
-                      <p className="text-white font-semibold">{therapeuticAreas[selectedTherapeutic].data}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-slate-800/50 rounded-xl">
-                        <p className="text-sm text-slate-400 mb-1">MOA</p>
-                        <p className="text-white text-sm">{therapeuticAreas[selectedTherapeutic].moa}</p>
-                      </div>
-                      <div className="p-4 bg-slate-800/50 rounded-xl">
-                        <p className="text-sm text-slate-400 mb-1">Competitor</p>
-                        <p className="text-white text-sm">{therapeuticAreas[selectedTherapeutic].competitor}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </AnimatedSection>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Comprehensive Drug Library</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Train on major therapeutics with complete clinical data — 
+                  trial results, mechanism of action, and competitive positioning.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Personas Section */}
-        <section id="personas" className="py-24">
+        <section id="personas" className="py-24 bg-slate-50">
           <div className="max-w-7xl mx-auto px-6">
-            <AnimatedSection direction="up">
-              <div className="text-center mb-16">
-                <span className="inline-block px-4 py-1.5 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full text-[#00D4AA] text-sm font-medium mb-4">
-                  AI Personas
-                </span>
-                <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                  Practice With Real
-                  <span className="bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent"> Physician Types</span>
-                </h2>
-                <p className="text-slate-400 max-w-2xl mx-auto">
-                  Each persona is modeled on common physician behaviors and communication styles 
-                  you'll encounter in the field.
-                </p>
-              </div>
-            </AnimatedSection>
-
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Practice with real physician archetypes
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Each persona is carefully designed to challenge different aspects 
+                of your sales approach. Master them all.
+              </p>
+            </div>
+            
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {personas.map((persona, i) => (
-                <AnimatedSection key={persona.id} direction="up" delay={i * 100}>
-                  <div 
-                    className={`group relative p-6 rounded-2xl border transition-all cursor-pointer ${
-                      hoveredPersona === persona.id
-                        ? 'bg-slate-800 border-[#00D4AA]/50 shadow-lg shadow-[#00D4AA]/10'
-                        : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
-                    }`}
-                    onMouseEnter={() => setHoveredPersona(persona.id)}
-                    onMouseLeave={() => setHoveredPersona(null)}
-                    onClick={() => {
-                      setSelectedPersona(persona.id);
-                      document.getElementById('simulator')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                  >
-                    <div className="flex items-start gap-4">
-                      <img 
-                        src={`https://i.pravatar.cc/80?img=${persona.id === 'rush' ? 1 : persona.id === 'skeptic' ? 3 : persona.id === 'loyalist' ? 5 : persona.id === 'gatekeeper' ? 9 : 11}`}
-                        alt={persona.name}
-                        className="w-16 h-16 rounded-xl ring-2 ring-slate-700 group-hover:ring-[#00D4AA]/30 transition-all"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-white">{persona.name}</h4>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            persona.difficulty === 'easy' ? 'bg-emerald-500/20 text-emerald-400' :
-                            persona.difficulty === 'medium' ? 'bg-amber-500/20 text-amber-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
-                            {persona.difficulty}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-400 mb-3">{persona.title}</p>
-                        <p className="text-sm text-slate-500">{persona.description}</p>
-                        <div className="flex items-center gap-2 mt-4 text-xs text-slate-500">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {Math.floor(persona.timerSeconds / 60)}:{(persona.timerSeconds % 60).toString().padStart(2, '0')} time limit
-                        </div>
+                <div 
+                  key={persona.id}
+                  className="bg-white rounded-xl p-6 border border-gray-200 hover:border-[#0066CC] hover:shadow-lg transition-all cursor-pointer"
+                  onClick={() => {
+                    setSelectedPersona(persona.id);
+                    document.getElementById('simulator')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <div className="flex items-start gap-4">
+                    <img 
+                      src={`https://images.unsplash.com/photo-${
+                        persona.id === 'rush' ? '1559839734-2b71ea197ec2' : 
+                        persona.id === 'skeptic' ? '1612349317150-e413f6a5b16d' : 
+                        persona.id === 'loyalist' ? '1594824476967-48c8b964273f' : 
+                        persona.id === 'gatekeeper' ? '1573496359142-b8d87734a5a2' : 
+                        '1537368910025-700350fe46c7'
+                      }?w=100&h=100&fit=crop&crop=face`}
+                      alt={persona.name}
+                      className="w-16 h-16 rounded-xl object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-gray-900">{persona.name}</h4>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          persona.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                          persona.difficulty === 'medium' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {persona.difficulty}
+                        </span>
+                      </div>
+                      <p className="text-sm text-[#0066CC] font-medium mb-2">{persona.title}</p>
+                      <p className="text-sm text-gray-600">{persona.description}</p>
+                      <div className="flex items-center gap-1 mt-3 text-xs text-gray-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {Math.floor(persona.timerSeconds / 60)}:{(persona.timerSeconds % 60).toString().padStart(2, '0')} time limit
                       </div>
                     </div>
-                    
-                    {/* Glow effect */}
-                    <div className={`absolute inset-0 rounded-2xl transition-opacity ${
-                      hoveredPersona === persona.id ? 'opacity-100' : 'opacity-0'
-                    }`} style={{
-                      background: 'radial-gradient(circle at 50% 50%, rgba(0, 212, 170, 0.1) 0%, transparent 70%)'
-                    }} />
                   </div>
-                </AnimatedSection>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* New England Region Section */}
-        <section className="py-24 bg-slate-900/50 border-y border-slate-800">
+        {/* Results/Testimonial Section */}
+        <section id="results" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <AnimatedSection direction="right">
-                <span className="inline-block px-4 py-1.5 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full text-[#00D4AA] text-sm font-medium mb-4">
-                  Regional Focus
-                </span>
-                <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-                  Built for
-                  <span className="bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent"> New England</span>
+              <div>
+                <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                  Built for New England's healthcare ecosystem
                 </h2>
-                <p className="text-slate-400 mb-8">
+                <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                   Our AI personas are trained on physician behaviors specific to the 
-                  Boston/Cambridge medical corridor and greater New England region.
+                  Boston/Cambridge medical corridor and greater New England region — 
+                  where expectations are high and time is short.
                 </p>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                    <p className="text-3xl font-bold text-[#00D4AA]">5</p>
-                    <p className="text-sm text-slate-400">Coverage Areas</p>
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Academic Medical Centers</h4>
+                      <p className="text-gray-600">Prepare for data-driven conversations with researchers and KOLs.</p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                    <p className="text-3xl font-bold text-[#00D4AA]">12+</p>
-                    <p className="text-sm text-slate-400">Academic Centers</p>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Community Practices</h4>
+                      <p className="text-gray-600">Master the art of the 90-second elevator pitch with busy PCPs.</p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                    <p className="text-3xl font-bold text-[#00D4AA]">25+</p>
-                    <p className="text-sm text-slate-400">Specialties</p>
-                  </div>
-                  <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                    <p className="text-3xl font-bold text-[#00D4AA]">24/7</p>
-                    <p className="text-sm text-slate-400">Availability</p>
+                  
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Hospital Systems</h4>
+                      <p className="text-gray-600">Navigate complex stakeholder environments and formulary discussions.</p>
+                    </div>
                   </div>
                 </div>
-              </AnimatedSection>
-
-              <AnimatedSection direction="left" delay={200}>
-                {/* New England Map Visualization */}
-                <div className="relative bg-slate-900 rounded-2xl border border-slate-800 p-8 aspect-square">
-                  <svg viewBox="0 0 300 300" className="w-full h-full">
-                    {/* Simplified NE Region outline */}
-                    <path
-                      d="M50 80 L100 60 L150 50 L200 55 L250 80 L260 130 L250 180 L220 220 L180 250 L140 260 L100 250 L60 210 L40 160 L45 120 Z"
-                      fill="none"
-                      stroke="url(#mapGradient)"
-                      strokeWidth="2"
-                      opacity="0.3"
-                    />
-                    <defs>
-                      <linearGradient id="mapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#00D4AA" />
-                        <stop offset="100%" stopColor="#0EA5E9" />
-                      </linearGradient>
-                    </defs>
-                    
-                    {/* Location pins */}
-                    {[
-                      { x: 180, y: 180, label: 'Boston', size: 'lg' },
-                      { x: 170, y: 160, label: 'Cambridge', size: 'md' },
-                      { x: 140, y: 200, label: 'Worcester', size: 'sm' },
-                      { x: 200, y: 220, label: 'Providence', size: 'sm' },
-                      { x: 160, y: 100, label: 'Manchester', size: 'sm' }
-                    ].map((loc, i) => (
-                      <g key={i}>
-                        <circle 
-                          cx={loc.x} 
-                          cy={loc.y} 
-                          r={loc.size === 'lg' ? 12 : loc.size === 'md' ? 8 : 6}
-                          fill="#00D4AA"
-                          opacity="0.2"
-                        >
-                          <animate attributeName="r" values={`${loc.size === 'lg' ? 12 : loc.size === 'md' ? 8 : 6};${loc.size === 'lg' ? 18 : loc.size === 'md' ? 12 : 10};${loc.size === 'lg' ? 12 : loc.size === 'md' ? 8 : 6}`} dur="2s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.2;0.1;0.2" dur="2s" repeatCount="indefinite" />
-                        </circle>
-                        <circle 
-                          cx={loc.x} 
-                          cy={loc.y} 
-                          r={loc.size === 'lg' ? 6 : loc.size === 'md' ? 4 : 3}
-                          fill="#00D4AA"
-                        />
-                        <text 
-                          x={loc.x} 
-                          y={loc.y - 15}
-                          textAnchor="middle"
-                          fill="#94a3b8"
-                          fontSize="10"
-                        >
-                          {loc.label}
-                        </text>
-                      </g>
-                    ))}
-                  </svg>
+              </div>
+              
+              <div className="bg-slate-50 rounded-2xl p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <img 
+                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face"
+                    alt="Sales Director"
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">James Mitchell</p>
+                    <p className="text-sm text-gray-500">Regional Sales Director, BioPharma Inc.</p>
+                  </div>
                 </div>
-              </AnimatedSection>
+                <blockquote className="text-lg text-gray-700 leading-relaxed mb-6">
+                  "RepIQ transformed how we onboard new reps. The AI simulations are 
+                  remarkably realistic — our team actually gets nervous before training 
+                  sessions, just like they would before a real call. That's exactly what we need."
+                </blockquote>
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map(i => (
+                    <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Simulator Section */}
-        <section id="simulator" className="py-24">
+        <section id="simulator" className="py-24 bg-slate-50">
           <div className="max-w-4xl mx-auto px-6">
-            <AnimatedSection direction="up">
-              <div className="text-center mb-12">
-                <span className="inline-block px-4 py-1.5 bg-[#00D4AA]/10 border border-[#00D4AA]/20 rounded-full text-[#00D4AA] text-sm font-medium mb-4">
-                  Training Simulator
-                </span>
-                <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-                  Configure Your
-                  <span className="bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] bg-clip-text text-transparent"> Session</span>
-                </h2>
-                <p className="text-slate-400">
-                  Select a product and physician persona to begin your simulation
-                </p>
-              </div>
-            </AnimatedSection>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Start your training session
+              </h2>
+              <p className="text-xl text-gray-600">
+                Select a product and physician persona to begin
+              </p>
+            </div>
 
-            {/* Product Selection */}
-            <AnimatedSection direction="up" delay={100}>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+              {/* Product Selection */}
               <div className="mb-10">
-                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-3">
-                  <span className="w-8 h-8 bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] text-slate-950 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-3">
+                  <span className="w-8 h-8 bg-[#0066CC] text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
                   Select Product
                 </h4>
                 <div className="grid gap-3">
@@ -823,35 +567,33 @@ export default function Home() {
                     <button
                       key={drug.id}
                       onClick={() => setSelectedDrug(drug.id)}
-                      className={`p-5 rounded-xl border text-left transition-all ${
+                      className={`p-5 rounded-xl border-2 text-left transition-all ${
                         selectedDrug === drug.id 
-                          ? 'bg-gradient-to-r from-[#00D4AA]/10 to-[#0EA5E9]/10 border-[#00D4AA]/50' 
-                          : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+                          ? 'bg-blue-50 border-[#0066CC]' 
+                          : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h5 className="font-semibold text-white">{drug.name}</h5>
-                          <p className="text-sm text-slate-400">{drug.category} • {drug.indication}</p>
+                          <h5 className="font-semibold text-gray-900">{drug.name}</h5>
+                          <p className="text-sm text-gray-500">{drug.category} • {drug.indication}</p>
                         </div>
                         <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedDrug === drug.id ? 'border-[#00D4AA] bg-[#00D4AA]' : 'border-slate-600'
+                          selectedDrug === drug.id ? 'border-[#0066CC] bg-[#0066CC]' : 'border-gray-300'
                         }`}>
-                          {selectedDrug === drug.id && <span className="w-2 h-2 rounded-full bg-slate-950" />}
+                          {selectedDrug === drug.id && <span className="w-2 h-2 rounded-full bg-white" />}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-500 mt-2">{drug.keyData}</p>
+                      <p className="text-sm text-gray-500 mt-2">{drug.keyData}</p>
                     </button>
                   ))}
                 </div>
               </div>
-            </AnimatedSection>
 
-            {/* Persona Selection */}
-            <AnimatedSection direction="up" delay={200}>
+              {/* Persona Selection */}
               <div className="mb-10">
-                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-3">
-                  <span className="w-8 h-8 bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] text-slate-950 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-3">
+                  <span className="w-8 h-8 bg-[#0066CC] text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
                   Select Physician
                 </h4>
                 <div className="grid gap-3">
@@ -859,41 +601,47 @@ export default function Home() {
                     <button
                       key={persona.id}
                       onClick={() => setSelectedPersona(persona.id)}
-                      className={`p-5 rounded-xl border text-left transition-all ${
+                      className={`p-5 rounded-xl border-2 text-left transition-all ${
                         selectedPersona === persona.id 
-                          ? 'bg-gradient-to-r from-[#00D4AA]/10 to-[#0EA5E9]/10 border-[#00D4AA]/50' 
-                          : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+                          ? 'bg-blue-50 border-[#0066CC]' 
+                          : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex gap-4 items-start">
                         <img 
-                          src={`https://i.pravatar.cc/80?img=${persona.id === 'rush' ? 1 : persona.id === 'skeptic' ? 3 : persona.id === 'loyalist' ? 5 : persona.id === 'gatekeeper' ? 9 : 11}`}
+                          src={`https://images.unsplash.com/photo-${
+                            persona.id === 'rush' ? '1559839734-2b71ea197ec2' : 
+                            persona.id === 'skeptic' ? '1612349317150-e413f6a5b16d' : 
+                            persona.id === 'loyalist' ? '1594824476967-48c8b964273f' : 
+                            persona.id === 'gatekeeper' ? '1573496359142-b8d87734a5a2' : 
+                            '1537368910025-700350fe46c7'
+                          }?w=100&h=100&fit=crop&crop=face`}
                           alt={persona.name}
-                          className="w-14 h-14 rounded-xl"
+                          className="w-14 h-14 rounded-xl object-cover"
                         />
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="flex items-center gap-2">
-                                <h5 className="font-semibold text-white">{persona.name}</h5>
+                                <h5 className="font-semibold text-gray-900">{persona.name}</h5>
                                 <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${
-                                  persona.difficulty === 'easy' ? 'bg-emerald-500/20 text-emerald-400' :
-                                  persona.difficulty === 'medium' ? 'bg-amber-500/20 text-amber-400' :
-                                  'bg-red-500/20 text-red-400'
+                                  persona.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                                  persona.difficulty === 'medium' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-red-100 text-red-700'
                                 }`}>
                                   {persona.difficulty}
                                 </span>
                               </div>
-                              <p className="text-sm text-slate-400">{persona.title}</p>
+                              <p className="text-sm text-gray-500">{persona.title}</p>
                             </div>
                             <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              selectedPersona === persona.id ? 'border-[#00D4AA] bg-[#00D4AA]' : 'border-slate-600'
+                              selectedPersona === persona.id ? 'border-[#0066CC] bg-[#0066CC]' : 'border-gray-300'
                             }`}>
-                              {selectedPersona === persona.id && <span className="w-2 h-2 rounded-full bg-slate-950" />}
+                              {selectedPersona === persona.id && <span className="w-2 h-2 rounded-full bg-white" />}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-500 mt-1">{persona.description}</p>
-                          <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
+                          <p className="text-sm text-gray-500 mt-1">{persona.description}</p>
+                          <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -905,72 +653,94 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            </AnimatedSection>
 
-            <AnimatedSection direction="up" delay={300}>
               <button
                 onClick={startTraining}
                 disabled={!selectedDrug}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] text-slate-950 font-semibold text-lg transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 rounded-xl bg-[#0066CC] hover:bg-[#0052A3] text-white font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Start Training Session
               </button>
-            </AnimatedSection>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 bg-[#0066CC]">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Ready to transform your sales performance?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              Join leading pharmaceutical companies using AI-powered training 
+              to accelerate rep onboarding and improve sales outcomes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="#simulator"
+                className="px-8 py-4 bg-white text-[#0066CC] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Start Free Training
+              </a>
+              <a 
+                href="#"
+                className="px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors"
+              >
+                Schedule a Demo
+              </a>
+            </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="py-16 border-t border-slate-800">
+        <footer className="bg-gray-900 text-gray-400 py-16">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid md:grid-cols-4 gap-12 mb-12">
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] flex items-center justify-center font-bold text-slate-950">
-                    R
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0066CC] to-[#0052A3] flex items-center justify-center">
+                    <span className="text-white font-bold">R</span>
                   </div>
                   <span className="text-xl font-semibold text-white">RepIQ</span>
                 </div>
-                <p className="text-slate-400 text-sm">
-                  AI-powered pharmaceutical sales training for the modern rep.
+                <p className="text-sm leading-relaxed">
+                  AI-powered pharmaceutical sales training built for 
+                  New England's healthcare ecosystem.
                 </p>
               </div>
               <div>
-                <h5 className="font-semibold text-white mb-4">Product</h5>
-                <ul className="space-y-2 text-sm text-slate-400">
-                  <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                  <li><a href="#personas" className="hover:text-white transition-colors">Personas</a></li>
-                  <li><a href="#simulator" className="hover:text-white transition-colors">Simulator</a></li>
+                <h5 className="font-semibold text-white mb-4">Platform</h5>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition-colors">AI Simulations</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Analytics</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Drug Library</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Team Management</a></li>
                 </ul>
               </div>
               <div>
                 <h5 className="font-semibold text-white mb-4">Company</h5>
-                <ul className="space-y-2 text-sm text-slate-400">
+                <ul className="space-y-2 text-sm">
                   <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
                 </ul>
               </div>
               <div>
                 <h5 className="font-semibold text-white mb-4">Legal</h5>
-                <ul className="space-y-2 text-sm text-slate-400">
-                  <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">HIPAA Compliance</a></li>
                 </ul>
               </div>
             </div>
-            <div className="pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-              <p>© 2025 RepIQ. Built with ❤️ in Boston, MA</p>
+            <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm">© 2025 RepIQ. All rights reserved.</p>
+              <p className="text-sm">Built in Boston, MA</p>
             </div>
           </div>
         </footer>
-
-        {/* CSS for float animation */}
-        <style jsx global>{`
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-          }
-        `}</style>
       </div>
     );
   }
@@ -978,23 +748,23 @@ export default function Home() {
   // Training Stage
   if (stage === 'training' && currentPersona && currentDrug) {
     return (
-      <div className="min-h-screen bg-slate-950">
+      <div className="min-h-screen bg-gray-50">
         {/* Header with Timer */}
-        <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] flex items-center justify-center font-bold text-slate-950">
-                R
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0066CC] to-[#0052A3] flex items-center justify-center">
+                <span className="text-white font-bold">R</span>
               </div>
               <div>
-                <h1 className="font-bold text-white">RepIQ</h1>
-                <p className="text-xs text-slate-400">Training Session</p>
+                <h1 className="font-bold text-gray-900">RepIQ</h1>
+                <p className="text-xs text-gray-500">Training Session</p>
               </div>
             </div>
             <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xl ${
               timeRemaining <= 30 
-                ? 'bg-red-500/20 text-red-400 animate-pulse' 
-                : 'bg-slate-800 text-white'
+                ? 'bg-red-100 text-red-600' 
+                : 'bg-gray-100 text-gray-700'
             }`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1007,28 +777,34 @@ export default function Home() {
         {/* Chat Area */}
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Persona Info Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6 flex items-center gap-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 flex items-center gap-4">
             <img 
-              src={`https://i.pravatar.cc/80?img=${currentPersona.id === 'rush' ? 1 : currentPersona.id === 'skeptic' ? 3 : currentPersona.id === 'loyalist' ? 5 : currentPersona.id === 'gatekeeper' ? 9 : 11}`}
+              src={`https://images.unsplash.com/photo-${
+                currentPersona.id === 'rush' ? '1559839734-2b71ea197ec2' : 
+                currentPersona.id === 'skeptic' ? '1612349317150-e413f6a5b16d' : 
+                currentPersona.id === 'loyalist' ? '1594824476967-48c8b964273f' : 
+                currentPersona.id === 'gatekeeper' ? '1573496359142-b8d87734a5a2' : 
+                '1537368910025-700350fe46c7'
+              }?w=100&h=100&fit=crop&crop=face`}
               alt={currentPersona.name}
-              className="w-14 h-14 rounded-xl ring-2 ring-[#00D4AA]/30"
+              className="w-14 h-14 rounded-xl object-cover"
             />
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-white">{currentPersona.name}</h3>
+                <h3 className="font-semibold text-gray-900">{currentPersona.name}</h3>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  currentPersona.difficulty === 'easy' ? 'bg-emerald-500/20 text-emerald-400' :
-                  currentPersona.difficulty === 'medium' ? 'bg-amber-500/20 text-amber-400' :
-                  'bg-red-500/20 text-red-400'
+                  currentPersona.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                  currentPersona.difficulty === 'medium' ? 'bg-amber-100 text-amber-700' :
+                  'bg-red-100 text-red-700'
                 }`}>
                   {currentPersona.difficulty}
                 </span>
               </div>
-              <p className="text-sm text-slate-400">{currentPersona.title}</p>
+              <p className="text-sm text-gray-500">{currentPersona.title}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-slate-400">Product</p>
-              <p className="font-medium text-[#00D4AA]">{currentDrug.name}</p>
+              <p className="text-sm text-gray-400">Product</p>
+              <p className="font-medium text-[#0066CC]">{currentDrug.name}</p>
             </div>
           </div>
 
@@ -1041,8 +817,8 @@ export default function Home() {
               >
                 <div className={`max-w-[80%] p-4 rounded-2xl ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-r from-[#00D4AA]/20 to-[#0EA5E9]/20 border border-[#00D4AA]/20 text-white'
-                    : 'bg-slate-800 text-slate-200'
+                    ? 'bg-[#0066CC] text-white rounded-tr-none'
+                    : 'bg-white border border-gray-200 text-gray-700 rounded-tl-none'
                 }`}>
                   {msg.content}
                 </div>
@@ -1050,11 +826,11 @@ export default function Home() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-slate-800 rounded-2xl p-4">
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none p-4">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-[#00D4AA] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -1063,19 +839,19 @@ export default function Home() {
           </div>
 
           {/* Input Area */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-2 flex gap-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-2 flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               placeholder="Type your response..."
-              className="flex-1 px-4 py-3 bg-transparent text-white placeholder-slate-500 focus:outline-none"
+              className="flex-1 px-4 py-3 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
             />
             <button
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] text-slate-950 font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 transition-all"
+              className="px-6 py-3 bg-[#0066CC] hover:bg-[#0052A3] text-white font-semibold rounded-lg disabled:opacity-50 transition-colors"
             >
               Send
             </button>
@@ -1084,7 +860,7 @@ export default function Home() {
           {/* End Session Button */}
           <button
             onClick={endTraining}
-            className="w-full mt-4 py-3 border border-slate-700 text-slate-400 rounded-xl hover:bg-slate-800 transition-all"
+            className="w-full mt-4 py-3 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors"
           >
             End Session Early
           </button>
@@ -1095,31 +871,31 @@ export default function Home() {
 
   // Feedback Stage
   if (stage === 'feedback' && feedback) {
-    const scoreColor = feedback.score >= 80 ? 'text-emerald-400' : feedback.score >= 60 ? 'text-amber-400' : 'text-red-400';
-    const scoreBg = feedback.score >= 80 ? 'from-emerald-500/20 to-emerald-500/5' : feedback.score >= 60 ? 'from-amber-500/20 to-amber-500/5' : 'from-red-500/20 to-red-500/5';
+    const scoreColor = feedback.score >= 80 ? 'text-green-600' : feedback.score >= 60 ? 'text-amber-600' : 'text-red-600';
+    const scoreBg = feedback.score >= 80 ? 'bg-green-50' : feedback.score >= 60 ? 'bg-amber-50' : 'bg-red-50';
 
     return (
-      <div className="min-h-screen bg-slate-950 py-12">
+      <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-2xl mx-auto px-4">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00D4AA] to-[#0EA5E9] flex items-center justify-center font-bold text-slate-950 text-2xl mx-auto mb-4">
-              R
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#0066CC] to-[#0052A3] flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-2xl">R</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Session Complete</h1>
-            <p className="text-slate-400">Here's how you performed</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Session Complete</h1>
+            <p className="text-gray-600">Here's how you performed</p>
           </div>
 
           {/* Score Card */}
-          <div className={`bg-gradient-to-b ${scoreBg} border border-slate-800 rounded-2xl p-8 mb-6 text-center`}>
-            <p className="text-slate-400 mb-2">Your Score</p>
+          <div className={`${scoreBg} border border-gray-200 rounded-2xl p-8 mb-6 text-center`}>
+            <p className="text-gray-600 mb-2">Your Score</p>
             <p className={`text-7xl font-bold ${scoreColor}`}>{feedback.score}</p>
-            <p className="text-slate-500 mt-2">out of 100</p>
+            <p className="text-gray-500 mt-2">out of 100</p>
           </div>
 
           {/* Strengths */}
           {feedback.strengths.length > 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4">
-              <h3 className="text-lg font-semibold text-emerald-400 mb-4 flex items-center gap-2">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+              <h3 className="text-lg font-semibold text-green-600 mb-4 flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -1127,8 +903,8 @@ export default function Home() {
               </h3>
               <ul className="space-y-2">
                 {feedback.strengths.map((s, i) => (
-                  <li key={i} className="text-slate-300 flex items-start gap-2">
-                    <span className="text-emerald-400 mt-1">•</span>
+                  <li key={i} className="text-gray-700 flex items-start gap-2">
+                    <span className="text-green-500 mt-1">•</span>
                     {s}
                   </li>
                 ))}
@@ -1138,8 +914,8 @@ export default function Home() {
 
           {/* Improvements */}
           {feedback.improvements.length > 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4">
-              <h3 className="text-lg font-semibold text-amber-400 mb-4 flex items-center gap-2">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+              <h3 className="text-lg font-semibold text-amber-600 mb-4 flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
@@ -1147,8 +923,8 @@ export default function Home() {
               </h3>
               <ul className="space-y-2">
                 {feedback.improvements.map((imp, i) => (
-                  <li key={i} className="text-slate-300 flex items-start gap-2">
-                    <span className="text-amber-400 mt-1">•</span>
+                  <li key={i} className="text-gray-700 flex items-start gap-2">
+                    <span className="text-amber-500 mt-1">•</span>
                     {imp}
                   </li>
                 ))}
@@ -1158,8 +934,8 @@ export default function Home() {
 
           {/* Pro Tips */}
           {feedback.tips.length > 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-[#00D4AA] mb-4 flex items-center gap-2">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-[#0066CC] mb-4 flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
@@ -1167,8 +943,8 @@ export default function Home() {
               </h3>
               <ul className="space-y-2">
                 {feedback.tips.map((tip, i) => (
-                  <li key={i} className="text-slate-300 flex items-start gap-2">
-                    <span className="text-[#00D4AA] mt-1">•</span>
+                  <li key={i} className="text-gray-700 flex items-start gap-2">
+                    <span className="text-[#0066CC] mt-1">•</span>
                     {tip}
                   </li>
                 ))}
@@ -1180,7 +956,7 @@ export default function Home() {
           <div className="flex gap-4">
             <button
               onClick={resetTraining}
-              className="flex-1 py-4 border border-slate-700 text-white font-semibold rounded-xl hover:bg-slate-800 transition-all"
+              className="flex-1 py-4 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
             >
               Back to Home
             </button>
@@ -1192,7 +968,7 @@ export default function Home() {
                 setTimeRemaining(currentPersona?.timerSeconds || 180);
                 setMessages([{ role: 'assistant', content: currentPersona ? getOpeningLine(currentPersona) : '' }]);
               }}
-              className="flex-1 py-4 bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] text-slate-950 font-semibold rounded-xl hover:opacity-90 transition-all"
+              className="flex-1 py-4 bg-[#0066CC] hover:bg-[#0052A3] text-white font-semibold rounded-xl transition-colors"
             >
               Try Again
             </button>
