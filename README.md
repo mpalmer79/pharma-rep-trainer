@@ -414,9 +414,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For questions, issues, or feature requests:
+For questions or issues:
 - Open an issue on GitHub
-- Email: support@example.com
+
+---
+
+## Licensing & Contact
+
+Interested in licensing this platform for your organization?
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mpalmer1234/)
+
+**Michael Palmer** — AI Deployment & Solutions Specialist
+
+[![Contact on LinkedIn](https://img.shields.io/badge/Contact_for_Licensing-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mpalmer1234/)
 
 ---
 
