@@ -142,6 +142,18 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Generate opening line based on persona
+  const getOpeningLine = (persona: typeof personas[0]) => {
+    const openings: Record<string, string> = {
+      'rush': "I have about 90 seconds before my next patient. What do you have for me?",
+      'skeptic': "Alright, I've got some time. What's the data look like for this medication?",
+      'loyalist': "Hi there. I should tell you upfront, I've been happy with my current prescribing patterns, but I'm willing to listen.",
+      'gatekeeper': "Good morning. The doctors are quite busy today. How can I help you?",
+      'curious': "Oh good, I was hoping to learn about some new options. What can you tell me about this medication?"
+    };
+    return openings[persona.id] || "Hello, how can I help you today?";
+  };
+
   const startTraining = useCallback(() => {
     if (!selectedDrug) return;
     const persona = selectedPersona ? personas.find(p => p.id === selectedPersona) : personas[0];
@@ -150,7 +162,7 @@ export default function Home() {
     setTimeRemaining(persona!.timerSeconds);
     setMessages([{
       role: 'assistant',
-      content: persona!.openingLine
+      content: getOpeningLine(persona!)
     }]);
     setStage('training');
   }, [selectedDrug, selectedPersona]);
@@ -1178,7 +1190,7 @@ export default function Home() {
                 setFeedback(null);
                 setStage('training');
                 setTimeRemaining(currentPersona?.timerSeconds || 180);
-                setMessages([{ role: 'assistant', content: currentPersona?.openingLine || '' }]);
+                setMessages([{ role: 'assistant', content: currentPersona ? getOpeningLine(currentPersona) : '' }]);
               }}
               className="flex-1 py-4 bg-gradient-to-r from-[#00D4AA] to-[#0EA5E9] text-slate-950 font-semibold rounded-xl hover:opacity-90 transition-all"
             >
