@@ -3,8 +3,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "RepIQ | AI-Powered Pharmaceutical Sales Training",
-  description: "Master physician conversations with AI-powered roleplay simulations. Practice with challenging personas modeled on real physician behaviors.",
-  keywords: ["pharmaceutical sales training", "AI roleplay", "physician simulation", "sales coaching", "medical sales"],
+  description: "Master physician conversations with AI-powered roleplay simulations. Practice with challenging personas modeled on real physician behaviors. Built for New England's pharmaceutical sales teams.",
+  keywords: ["pharmaceutical sales training", "AI roleplay", "physician simulation", "sales coaching", "medical sales", "New England", "Boston", "pharma training"],
+  authors: [{ name: "Michael Palmer" }],
+  openGraph: {
+    title: "RepIQ | AI-Powered Pharmaceutical Sales Training",
+    description: "Master physician conversations with AI-powered roleplay simulations.",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
@@ -12,7 +18,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#ffffff',
+  themeColor: '#1B4D7A',
 };
 
 export default function RootLayout({
