@@ -427,7 +427,7 @@ Interested in licensing this platform for your organization?
 
 **Michael Palmer** — AI Deployment & Solutions Specialist
 
-[![Contact on LinkedIn](https://img.shields.io/badge/Contact_for_Licensing-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mpalmer1234/)
+[![Contact on LinkedIn](https://img.shields.io/badge/Contact_for_Licensing-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mpalmer1234/?msgOverlay=true)
 
 ---
 
