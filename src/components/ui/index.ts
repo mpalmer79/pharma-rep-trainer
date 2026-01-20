@@ -1,1 +1,2 @@
+export { AnimatedSection } from './AnimatedSection';
 
