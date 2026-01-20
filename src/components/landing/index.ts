@@ -1,1 +1,11 @@
-
+export { Navbar } from './Navbar';
+export { HeroSection } from './HeroSection';
+export { TrustStrip } from './TrustStrip';
+export { PlatformSection } from './PlatformSection';
+export { TrainingProgramsSection } from './TrainingProgramsSection';
+export { StatsBanner } from './StatsBanner';
+export { RolesSection } from './RolesSection';
+export { AboutSection } from './AboutSection';
+export { SimulatorSection } from './SimulatorSection';
+export { CTASection } from './CTASection';
+export { Footer } from './Footer';
