@@ -109,6 +109,104 @@ a:focus-visible {
   }
 }
 
+/* Safe Area Utilities for Mobile Training Screen */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Touch manipulation for buttons */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Prevent text selection during swipe */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Overscroll behavior for chat containers */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
+/* iOS input zoom prevention */
+@media screen and (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Pulse animation for timer warning */
+@keyframes timerPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+}
+
+.timer-pulse {
+  animation: timerPulse 1s ease-in-out;
+}
+
+/* Swipe indicator animations */
+@keyframes swipeHint {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(10px);
+    opacity: 1;
+  }
+}
+
+.swipe-hint-animation {
+  animation: swipeHint 2s ease-in-out infinite;
+}
+
+/* Mobile chat bubble improvements */
+@media (max-width: 640px) {
+  .chat-bubble {
+    max-width: 85%;
+  }
+  
+  /* Larger tap targets on mobile */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Smooth momentum scrolling */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Active state feedback for touch */
+@media (hover: none) {
+  button:active,
+  .touch-active:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
 /* Image Loading */
 img {
   background-color: #f1f5f9;
