@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { drugs } from '@/data/drugs';
 import { personas } from '@/data/personas';
+import MobileTrainingScreen from '@/components/MobileTrainingScreen';
 
 type Stage = 'landing' | 'training' | 'feedback';
 
@@ -930,101 +931,18 @@ export default function Home() {
   // ==================== TRAINING STAGE ====================
   if (stage === 'training' && currentPersona && currentDrug) {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded bg-gradient-to-br from-[#1B4D7A] to-[#2D6A9F] flex items-center justify-center">
-                <span className="text-white font-bold">R</span>
-              </div>
-              <div>
-                <h1 className="font-bold text-[#1B4D7A]">RepIQ</h1>
-                <p className="text-xs text-gray-500">Training Session</p>
-              </div>
-            </div>
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xl ${
-              timeRemaining <= 30 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700'
-            }`}>
-              {formatTime(timeRemaining)}
-            </div>
-          </div>
-        </header>
-
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex items-center gap-4 shadow-sm">
-            <img 
-              src={`https://images.unsplash.com/photo-${
-                currentPersona.id === 'rush' ? '1559839734-2b71ea197ec2' : 
-                currentPersona.id === 'skeptic' ? '1612349317150-e413f6a5b16d' : 
-                currentPersona.id === 'loyalist' ? '1594824476967-48c8b964273f' : 
-                currentPersona.id === 'gatekeeper' ? '1573496359142-b8d87734a5a2' : 
-                '1537368910025-700350fe46c7'
-              }?w=100&h=100&fit=crop&crop=face`}
-              alt={currentPersona.name}
-              className="w-14 h-14 rounded-lg object-cover"
-            />
-            <div className="flex-1">
-              <h3 className="font-semibold text-[#1B4D7A]">{currentPersona.name}</h3>
-              <p className="text-sm text-gray-500">{currentPersona.title}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Product</p>
-              <p className="font-medium text-[#E67E22]">{currentDrug.name}</p>
-            </div>
-          </div>
-
-          <div className="space-y-4 mb-6 min-h-[400px]">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-4 rounded-2xl ${
-                  msg.role === 'user'
-                    ? 'bg-[#1B4D7A] text-white rounded-tr-sm'
-                    : 'bg-white border border-gray-200 text-gray-700 rounded-tl-sm shadow-sm'
-                }`}>
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm p-4 shadow-sm">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-2 flex gap-2 shadow-sm">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Type your response..."
-              className="flex-1 px-4 py-3 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={isLoading || !input.trim()}
-              className="px-6 py-3 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded-lg disabled:opacity-50 transition-colors"
-            >
-              Send
-            </button>
-          </div>
-
-          <button
-            onClick={endTraining}
-            className="w-full mt-4 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            End Session Early
-          </button>
-        </div>
-      </div>
+      <MobileTrainingScreen
+        currentPersona={currentPersona}
+        currentDrug={currentDrug}
+        messages={messages}
+        input={input}
+        setInput={setInput}
+        isLoading={isLoading}
+        timeRemaining={timeRemaining}
+        onSendMessage={sendMessage}
+        onEndTraining={endTraining}
+        formatTime={formatTime}
+      />
     );
   }
 
