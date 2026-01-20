@@ -3,7 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { drugs } from '@/data/drugs';
 import { personas } from '@/data/personas';
+import { TrainingSession, Feedback } from '@/types';
 import MobileTrainingScreen from '@/components/MobileTrainingScreen';
+import ProgressDashboard from '@/components/ProgressDashboard';
+import SessionDetailModal from '@/components/SessionDetailModal';
+import { useSessionHistory } from '@/hooks/useSessionHistory';
 
 type Stage = 'landing' | 'training' | 'feedback';
 
@@ -79,6 +83,21 @@ export default function Home() {
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Session history state
+  const [showProgressDashboard, setShowProgressDashboard] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  
+  // Session history hook
+  const { 
+    sessions, 
+    isLoaded: historyLoaded, 
+    saveSession, 
+    deleteSession, 
+    clearHistory, 
+    getStats 
+  } = useSessionHistory();
 
   const currentPersona = personas.find(p => p.id === selectedPersona);
   const currentDrug = drugs.find(d => d.id === selectedDrug);
@@ -122,6 +141,7 @@ export default function Home() {
     if (!selectedPersona) setSelectedPersona(persona!.id);
     setTimeRemaining(persona!.timerSeconds);
     setMessages([{ role: 'assistant', content: getOpeningLine(persona!) }]);
+    setSessionStartTime(new Date());
     setStage('training');
   }, [selectedDrug, selectedPersona]);
 
@@ -140,12 +160,44 @@ export default function Home() {
       });
       const data = await response.json();
       setFeedback(data);
+      
+      // Save session to history
+      if (selectedDrug && selectedPersona && sessionStartTime) {
+        const startTime = sessionStartTime;
+        const persona = personas.find(p => p.id === selectedPersona);
+        const duration = persona ? persona.timerSeconds - timeRemaining : 0;
+        
+        // Convert feedback to proper format for saving
+        const feedbackToSave: Feedback = {
+          scores: data.scores || {
+            opening: data.score || 50,
+            clinicalKnowledge: data.score || 50,
+            objectionHandling: data.score || 50,
+            timeManagement: data.score || 50,
+            compliance: data.score || 50,
+            closing: data.score || 50,
+          },
+          overall: data.overall || data.score || 50,
+          strengths: data.strengths || [],
+          improvements: data.improvements || [],
+          tips: data.tips || '',
+        };
+        
+        saveSession(
+          selectedDrug,
+          selectedPersona,
+          messages,
+          feedbackToSave,
+          startTime,
+          duration
+        );
+      }
     } catch {
       setFeedback({ score: 50, strengths: ['Completed the session'], improvements: ['Unable to generate detailed feedback'], tips: ['Try again for a more detailed analysis'] });
     }
     setIsLoading(false);
     setStage('feedback');
-  }, [messages, currentDrug, currentPersona]);
+  }, [messages, currentDrug, currentPersona, selectedDrug, selectedPersona, sessionStartTime, timeRemaining, saveSession]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -173,6 +225,39 @@ export default function Home() {
     setFeedback(null);
     setSelectedDrug(null);
     setSelectedPersona(null);
+    setSessionStartTime(null);
+  };
+
+  // Handle viewing a session from history
+  const handleViewSession = (session: TrainingSession) => {
+    setSelectedSession(session);
+  };
+
+  // Handle retrying a session with same setup
+  const handleRetrySession = (drugId: string, personaId: string) => {
+    setSelectedSession(null);
+    setShowProgressDashboard(false);
+    setSelectedDrug(drugId);
+    setSelectedPersona(personaId);
+    // Small delay to ensure state is set before starting
+    setTimeout(() => {
+      const persona = personas.find(p => p.id === personaId);
+      if (persona) {
+        setTimeRemaining(persona.timerSeconds);
+        setMessages([{ role: 'assistant', content: getOpeningLine(persona) }]);
+        setSessionStartTime(new Date());
+        setStage('training');
+      }
+    }, 100);
+  };
+
+  // Scroll to simulator section
+  const scrollToSimulator = () => {
+    setShowProgressDashboard(false);
+    const simulator = document.getElementById('simulator');
+    if (simulator) {
+      simulator.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -233,6 +318,21 @@ export default function Home() {
                   </svg>
                   View this project on GitHub
                 </a>
+                {/* Progress Button */}
+                <button 
+                  onClick={() => setShowProgressDashboard(true)}
+                  className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-[#1B4D7A] hover:bg-[#0F2D44] text-white font-semibold rounded transition-colors text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Progress
+                  {historyLoaded && sessions.length > 0 && (
+                    <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs">
+                      {sessions.length}
+                    </span>
+                  )}
+                </button>
                 <a 
                   href="#simulator"
                   className="hidden sm:inline-flex px-5 py-2.5 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded transition-colors text-sm"
@@ -296,6 +396,20 @@ export default function Home() {
                 </a>
                 <hr />
                 <a href="#simulator" onClick={handleNavClick} className="block w-full py-3 bg-[#E67E22] text-white font-semibold rounded text-center">Get Started</a>
+                <button 
+                  onClick={() => { handleNavClick(); setShowProgressDashboard(true); }}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#1B4D7A] text-white font-semibold rounded"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  My Progress
+                  {historyLoaded && sessions.length > 0 && (
+                    <span className="bg-white/20 px-2 py-0.5 rounded text-sm">
+                      {sessions.length} sessions
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           )}
@@ -924,6 +1038,28 @@ export default function Home() {
             </div>
           </div>
         </footer>
+
+        {/* Progress Dashboard Modal */}
+        {showProgressDashboard && (
+          <ProgressDashboard
+            stats={getStats()}
+            sessions={sessions}
+            onClose={() => setShowProgressDashboard(false)}
+            onViewSession={handleViewSession}
+            onDeleteSession={deleteSession}
+            onClearHistory={clearHistory}
+            onStartTraining={scrollToSimulator}
+          />
+        )}
+
+        {/* Session Detail Modal */}
+        {selectedSession && (
+          <SessionDetailModal
+            session={selectedSession}
+            onClose={() => setSelectedSession(null)}
+            onRetry={handleRetrySession}
+          />
+        )}
       </div>
     );
   }
@@ -1010,7 +1146,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={resetTraining}
               className="flex-1 py-4 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
@@ -1018,12 +1154,22 @@ export default function Home() {
               Back to Home
             </button>
             <button
+              onClick={() => setShowProgressDashboard(true)}
+              className="flex-1 py-4 bg-[#1B4D7A] hover:bg-[#0F2D44] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              View Progress
+            </button>
+            <button
               onClick={() => {
                 setMessages([]);
                 setFeedback(null);
-                setStage('training');
+                setSessionStartTime(new Date());
                 setTimeRemaining(currentPersona?.timerSeconds || 180);
                 setMessages([{ role: 'assistant', content: currentPersona ? getOpeningLine(currentPersona) : '' }]);
+                setStage('training');
               }}
               className="flex-1 py-4 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded-lg transition-colors"
             >
@@ -1031,6 +1177,31 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {/* Progress Dashboard Modal in Feedback */}
+        {showProgressDashboard && (
+          <ProgressDashboard
+            stats={getStats()}
+            sessions={sessions}
+            onClose={() => setShowProgressDashboard(false)}
+            onViewSession={handleViewSession}
+            onDeleteSession={deleteSession}
+            onClearHistory={clearHistory}
+            onStartTraining={() => {
+              setShowProgressDashboard(false);
+              resetTraining();
+            }}
+          />
+        )}
+
+        {/* Session Detail Modal in Feedback */}
+        {selectedSession && (
+          <SessionDetailModal
+            session={selectedSession}
+            onClose={() => setSelectedSession(null)}
+            onRetry={handleRetrySession}
+          />
+        )}
       </div>
     );
   }
