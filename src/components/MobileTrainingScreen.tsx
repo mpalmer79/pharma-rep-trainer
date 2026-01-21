@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Persona } from '@/types';
 import { Drug } from '@/types';
+import { useSound } from '@/hooks/useSound';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -84,6 +85,45 @@ export default function MobileTrainingScreen({
 }: MobileTrainingScreenProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { playSound } = useSound({ volume: 0.5 });
+  
+  // Track which warnings have been played
+  const [warning30Played, setWarning30Played] = useState(false);
+  const [warning10Played, setWarning10Played] = useState(false);
+  const prevTimeRef = useRef(timeRemaining);
+
+  // Play session start sound on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      playSound('sessionStart');
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [playSound]);
+
+  // Timer warning sounds
+  useEffect(() => {
+    // Skip for unlimited mode
+    if (timeRemaining === -1) return;
+
+    // 30-second warning
+    if (timeRemaining <= 30 && timeRemaining > 10 && !warning30Played && prevTimeRef.current > 30) {
+      playSound('warning30');
+      setWarning30Played(true);
+    }
+    
+    // 10-second warning
+    if (timeRemaining <= 10 && timeRemaining > 0 && !warning10Played && prevTimeRef.current > 10) {
+      playSound('warning10');
+      setWarning10Played(true);
+    }
+    
+    // Tick sound for final 5 seconds
+    if (timeRemaining <= 5 && timeRemaining > 0 && prevTimeRef.current !== timeRemaining) {
+      playSound('tick');
+    }
+
+    prevTimeRef.current = timeRemaining;
+  }, [timeRemaining, warning30Played, warning10Played, playSound]);
 
   // Auto-scroll to bottom when messages change or when loading
   useEffect(() => {
@@ -101,6 +141,13 @@ export default function MobileTrainingScreen({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (input.trim() && !isLoading) {
+      playSound('messageSent');
       onSendMessage();
     }
   };
@@ -108,6 +155,8 @@ export default function MobileTrainingScreen({
   const timerColor =
     timeRemaining === -1
       ? 'text-blue-600'
+      : timeRemaining <= 10
+      ? 'text-red-600 animate-pulse'
       : timeRemaining <= 30
       ? 'text-red-600'
       : timeRemaining <= 60
@@ -117,6 +166,8 @@ export default function MobileTrainingScreen({
   const timerBg =
     timeRemaining === -1
       ? 'bg-blue-50'
+      : timeRemaining <= 10
+      ? 'bg-red-100'
       : timeRemaining <= 30
       ? 'bg-red-50'
       : timeRemaining <= 60
@@ -139,8 +190,8 @@ export default function MobileTrainingScreen({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`px-3 py-1.5 rounded-full ${timerBg}`}>
-            <span className={`font-mono font-bold ${timerColor}`}>
+          <div className={`px-3 py-1.5 rounded-full ${timerBg} transition-colors`}>
+            <span className={`font-mono font-bold ${timerColor} transition-colors`}>
               {formatTime(timeRemaining)}
             </span>
           </div>
@@ -152,6 +203,20 @@ export default function MobileTrainingScreen({
           </button>
         </div>
       </div>
+
+      {/* Low time warning banner */}
+      <AnimatePresence>
+        {timeRemaining !== -1 && timeRemaining <= 10 && timeRemaining > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-red-500 text-white text-center py-2 text-sm font-semibold overflow-hidden"
+          >
+            ⚠️ Time running out! Wrap up your conversation.
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -215,7 +280,7 @@ export default function MobileTrainingScreen({
             />
           </div>
           <motion.button
-            onClick={onSendMessage}
+            onClick={handleSendMessage}
             disabled={isLoading || !input.trim()}
             className="p-3 bg-[#E67E22] hover:bg-[#D35400] text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             whileTap={{ scale: 0.95 }}
