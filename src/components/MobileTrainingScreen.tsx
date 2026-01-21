@@ -7,6 +7,9 @@ import { Persona } from '@/types';
 import { Drug } from '@/types';
 import { useSound } from '@/hooks/useSound';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
+import { useCoachingMode } from '@/hooks/useCoachingMode';
+import CoachingHint from '@/components/CoachingHint';
+import { CoachingIndicator } from '@/components/CoachingToggle';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -24,6 +27,7 @@ interface MobileTrainingScreenProps {
   onSendMessage: () => void;
   onEndTraining: () => void;
   formatTime: (seconds: number) => string;
+  coachingEnabled?: boolean;
 }
 
 const getPersonaImage = (personaId: string) => {
@@ -127,6 +131,7 @@ export default function MobileTrainingScreen({
   onSendMessage,
   onEndTraining,
   formatTime,
+  coachingEnabled = false,
 }: MobileTrainingScreenProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -150,6 +155,17 @@ export default function MobileTrainingScreen({
   } = useVoiceInput({
     continuous: true,
     language: 'en-US',
+  });
+
+  // Coaching mode hook
+  const { currentHint, dismissHint, hintHistory } = useCoachingMode({
+    enabled: coachingEnabled,
+    messages,
+    persona: currentPersona,
+    drug: currentDrug,
+    timeRemaining,
+    isLoading,
+    input,
   });
 
   // Update input when voice transcript changes
@@ -270,7 +286,10 @@ export default function MobileTrainingScreen({
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>
-            <h2 className="font-semibold text-[#1B4D7A] dark:text-white text-sm">{currentPersona.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-[#1B4D7A] dark:text-white text-sm">{currentPersona.name}</h2>
+              <CoachingIndicator enabled={coachingEnabled} />
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">{currentDrug.name}</p>
           </div>
         </div>
@@ -313,6 +332,20 @@ export default function MobileTrainingScreen({
             className="bg-amber-500 text-white text-center py-2 text-sm font-medium overflow-hidden"
           >
             🎤 {voiceError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Coaching Hint - Fixed position at top of messages */}
+      <AnimatePresence>
+        {currentHint && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="px-4 py-2 bg-gray-50 dark:bg-gray-900"
+          >
+            <CoachingHint hint={currentHint} onDismiss={dismissHint} />
           </motion.div>
         )}
       </AnimatePresence>
