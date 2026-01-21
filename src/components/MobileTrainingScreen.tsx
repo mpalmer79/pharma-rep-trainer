@@ -48,22 +48,22 @@ const TypingIndicator = ({ personaName }: { personaName: string }) => {
       exit={{ opacity: 0, y: -10 }}
       className="flex items-start gap-3 mb-4"
     >
-      <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
-      <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">
+      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+      <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-4 py-3">
         <div className="flex items-center gap-1">
-          <span className="text-sm text-gray-500 mr-2">{personaName} is typing</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">{personaName} is typing</span>
           <motion.span
-            className="w-2 h-2 bg-gray-400 rounded-full"
+            className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1, repeat: Infinity, delay: 0 }}
           />
           <motion.span
-            className="w-2 h-2 bg-gray-400 rounded-full"
+            className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
           />
           <motion.span
-            className="w-2 h-2 bg-gray-400 rounded-full"
+            className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
           />
@@ -88,7 +88,7 @@ const VoiceRecordingIndicator = ({
       exit={{ opacity: 0, y: 20 }}
       className="absolute bottom-full left-0 right-0 mb-2 mx-4"
     >
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg">
+      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-lg">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <motion.div
@@ -96,20 +96,20 @@ const VoiceRecordingIndicator = ({
               animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             />
-            <span className="text-red-600 font-medium text-sm">Listening...</span>
+            <span className="text-red-600 dark:text-red-400 font-medium text-sm">Listening...</span>
           </div>
           <button
             onClick={onCancel}
-            className="p-1 hover:bg-red-100 rounded-full transition-colors"
+            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full transition-colors"
           >
-            <X className="w-4 h-4 text-red-500" />
+            <X className="w-4 h-4 text-red-500 dark:text-red-400" />
           </button>
         </div>
         {interimTranscript && (
-          <p className="text-gray-700 text-sm italic">"{interimTranscript}"</p>
+          <p className="text-gray-700 dark:text-gray-300 text-sm italic">"{interimTranscript}"</p>
         )}
         {!interimTranscript && (
-          <p className="text-gray-400 text-sm">Speak now...</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">Speak now...</p>
         )}
       </div>
     </motion.div>
@@ -239,30 +239,30 @@ export default function MobileTrainingScreen({
 
   const timerColor =
     timeRemaining === -1
-      ? 'text-blue-600'
+      ? 'text-blue-600 dark:text-blue-400'
       : timeRemaining <= 10
-      ? 'text-red-600 animate-pulse'
+      ? 'text-red-600 dark:text-red-400 animate-pulse'
       : timeRemaining <= 30
-      ? 'text-red-600'
+      ? 'text-red-600 dark:text-red-400'
       : timeRemaining <= 60
-      ? 'text-amber-600'
-      : 'text-[#1B4D7A]';
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-[#1B4D7A] dark:text-blue-400';
 
   const timerBg =
     timeRemaining === -1
-      ? 'bg-blue-50'
+      ? 'bg-blue-50 dark:bg-blue-900/30'
       : timeRemaining <= 10
-      ? 'bg-red-100'
+      ? 'bg-red-100 dark:bg-red-900/30'
       : timeRemaining <= 30
-      ? 'bg-red-50'
+      ? 'bg-red-50 dark:bg-red-900/20'
       : timeRemaining <= 60
-      ? 'bg-amber-50'
-      : 'bg-gray-100';
+      ? 'bg-amber-50 dark:bg-amber-900/20'
+      : 'bg-gray-100 dark:bg-gray-800';
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex flex-col">
+    <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between safe-top">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between safe-top">
         <div className="flex items-center gap-3">
           <img
             src={getPersonaImage(currentPersona.id)}
@@ -270,8 +270,8 @@ export default function MobileTrainingScreen({
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>
-            <h2 className="font-semibold text-[#1B4D7A] text-sm">{currentPersona.name}</h2>
-            <p className="text-xs text-gray-500">{currentDrug.name}</p>
+            <h2 className="font-semibold text-[#1B4D7A] dark:text-white text-sm">{currentPersona.name}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{currentDrug.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -345,7 +345,7 @@ export default function MobileTrainingScreen({
                 className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
                     ? 'bg-[#1B4D7A] text-white rounded-tr-sm'
-                    : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
+                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-sm shadow-sm'
                 }`}
               >
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
@@ -363,7 +363,7 @@ export default function MobileTrainingScreen({
       </div>
 
       {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3 safe-bottom relative">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-3 safe-bottom relative">
         {/* Voice Recording Indicator */}
         <AnimatePresence>
           {isListening && (
@@ -384,8 +384,8 @@ export default function MobileTrainingScreen({
               placeholder={isListening ? "Listening..." : "Type or tap 🎤 to speak..."}
               disabled={isLoading || isListening}
               rows={1}
-              className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4D7A] focus:border-transparent resize-none text-sm disabled:bg-gray-50 disabled:text-gray-400 ${
-                isListening ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4D7A] dark:focus:ring-blue-500 focus:border-transparent resize-none text-sm disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
+                isListening ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600'
               }`}
               style={{ maxHeight: '120px' }}
             />
@@ -399,7 +399,7 @@ export default function MobileTrainingScreen({
               className={`p-3 rounded-full transition-colors flex-shrink-0 ${
                 isListening
                   ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
               whileTap={{ scale: 0.95 }}
               animate={isListening ? { scale: [1, 1.1, 1] } : {}}
@@ -432,14 +432,14 @@ export default function MobileTrainingScreen({
         </div>
 
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             {isVoiceSupported 
               ? 'Enter to send • 🎤 for voice input'
               : 'Press Enter to send • Shift+Enter for new line'
             }
           </p>
           {isVoiceSupported && !isListening && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               Tap mic to speak
             </p>
           )}
