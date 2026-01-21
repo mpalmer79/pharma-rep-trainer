@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface SessionData {
   id: string;
@@ -29,7 +29,7 @@ export function useSupabaseSession() {
 
   // Load sessions from Supabase
   const loadSessions = useCallback(async () => {
-    if (!user) {
+    if (!user || !isSupabaseConfigured) {
       setSessions([]);
       setIsLoading(false);
       return;
@@ -40,14 +40,14 @@ export function useSupabaseSession() {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from('training_sessions')
+        .from('training_sessions_simple')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      setSessions(data || []);
+      setSessions((data as SessionData[]) || []);
     } catch (err) {
       console.error('Error loading sessions:', err);
       setError('Failed to load sessions');
@@ -71,8 +71,12 @@ export function useSupabaseSession() {
         throw new Error('User must be logged in to save sessions');
       }
 
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase not configured');
+      }
+
       const { data, error: insertError } = await supabase
-        .from('training_sessions')
+        .from('training_sessions_simple')
         .insert({
           user_id: user.id,
           drug_name: session.drug,
@@ -87,7 +91,7 @@ export function useSupabaseSession() {
 
       if (insertError) throw insertError;
 
-      setSessions((prev) => [data, ...prev]);
+      setSessions((prev) => [data as SessionData, ...prev]);
       return data;
     },
     [user]
@@ -96,10 +100,10 @@ export function useSupabaseSession() {
   // Delete session from Supabase
   const deleteSession = useCallback(
     async (sessionId: string) => {
-      if (!user) return;
+      if (!user || !isSupabaseConfigured) return;
 
       const { error: deleteError } = await supabase
-        .from('training_sessions')
+        .from('training_sessions_simple')
         .delete()
         .eq('id', sessionId)
         .eq('user_id', user.id);
