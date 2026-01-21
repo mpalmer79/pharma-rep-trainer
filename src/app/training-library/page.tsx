@@ -13,7 +13,7 @@ interface Objection {
 interface Category {
   id: string;
   name: string;
-  icon: string;
+  image: string;
   description: string;
   objections: Objection[];
 }
@@ -22,7 +22,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'price-cost',
     name: 'Price & Cost',
-    icon: '💰',
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
     description: 'Objections related to medication pricing, insurance coverage, and budget constraints.',
     objections: [
       {
@@ -66,7 +66,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'efficacy-clinical',
     name: 'Efficacy & Clinical Data',
-    icon: '📊',
+    image: 'https://images.unsplash.com/photo-1579165466741-7f35e4755660?w=800&q=80',
     description: 'Objections about clinical effectiveness, trial data, and real-world outcomes.',
     objections: [
       {
@@ -122,7 +122,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'safety-side-effects',
     name: 'Safety & Side Effects',
-    icon: '⚠️',
+    image: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800&q=80',
     description: 'Concerns about adverse events, contraindications, and patient safety.',
     objections: [
       {
@@ -178,7 +178,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'time-access',
     name: 'Time & Access',
-    icon: '⏰',
+    image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&q=80',
     description: 'Objections about limited time, busy schedules, and access constraints.',
     objections: [
       {
@@ -222,7 +222,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'loyalty-habits',
     name: 'Prescribing Habits & Loyalty',
-    icon: '🔄',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80',
     description: 'Resistance based on established prescribing patterns and competitor loyalty.',
     objections: [
       {
@@ -266,7 +266,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'formulary-pa',
     name: 'Formulary & Prior Authorization',
-    icon: '📋',
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
     description: 'Administrative barriers, insurance hurdles, and formulary restrictions.',
     objections: [
       {
@@ -310,7 +310,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'samples-resources',
     name: 'Samples & Resources',
-    icon: '📦',
+    image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800&q=80',
     description: 'Requests for samples and questions about available support resources.',
     objections: [
       {
@@ -342,7 +342,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'clinical-guidelines',
     name: 'Guidelines & Standards of Care',
-    icon: '📖',
+    image: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&q=80',
     description: 'Objections based on clinical guidelines and established treatment protocols.',
     objections: [
       {
@@ -374,7 +374,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'competition',
     name: 'Competitive Positioning',
-    icon: '🎯',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80',
     description: 'Direct comparisons with competitor products and differentiation challenges.',
     objections: [
       {
@@ -418,7 +418,7 @@ const trainingLibrary: Category[] = [
   {
     id: 'patient-specific',
     name: 'Patient Population Concerns',
-    icon: '👥',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80',
     description: 'Questions about specific patient populations and appropriate use.',
     objections: [
       {
@@ -518,77 +518,100 @@ export default function TrainingLibraryPage() {
                 </svg>
                 HOME
               </a>
-              <div className="hidden sm:block h-8 w-px bg-gray-300"></div>
-              <div className="hidden sm:flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-gradient-to-br from-[#1B4D7A] to-[#2D6A9F] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">R</span>
-                </div>
-                <span className="text-lg font-bold text-[#1B4D7A]">RepIQ Training Library</span>
-              </div>
-            </div>
-            <div className="text-sm text-gray-500">
-              {totalObjections} Objection Responses
+              <h1 className="text-xl font-bold text-[#1B4D7A]">Training Library</h1>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#1B4D7A] to-[#2D6A9F] text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            Sales Objection Training Library
-          </h1>
-          <p className="text-lg text-blue-100 mb-8">
-            Master the art of handling objections with proven responses and expert tips.
-            Search by keyword or browse by category.
-          </p>
-
-          {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <input
-              type="text"
-              placeholder="Search objections, responses, or keywords..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-6 py-4 pl-14 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-white/30 text-lg"
-            />
-            <svg
-              className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {searchTerm && (
-            <p className="mt-4 text-blue-100">
-              Found {filteredObjections} objection{filteredObjections !== 1 ? 's' : ''} matching "{searchTerm}"
+      {/* Hero Section with Professional Background */}
+      <section className="relative bg-gradient-to-r from-[#0F2D44] to-[#1B4D7A] overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1600&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Objection Handling Library
+            </h2>
+            <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto">
+              Master every conversation with evidence-based responses to common physician objections. 
+              Your comprehensive resource for turning challenges into opportunities.
             </p>
-          )}
+            
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search objections, responses, or keywords..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-6 py-4 pl-14 rounded-xl border-0 shadow-lg text-gray-900 placeholder-gray-400 focus:ring-4 focus:ring-[#E67E22]/30 text-lg"
+                />
+                <svg 
+                  className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="mt-8 flex justify-center gap-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+                <span className="text-3xl font-bold text-white">{trainingLibrary.length}</span>
+                <span className="text-gray-200 ml-2">Categories</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+                <span className="text-3xl font-bold text-[#E67E22]">{totalObjections}</span>
+                <span className="text-gray-200 ml-2">Objections</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Search Results Info */}
+      {searchTerm && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-white rounded-lg shadow-sm px-6 py-4 flex items-center justify-between">
+            <p className="text-gray-600">
+              Found <span className="font-semibold text-[#1B4D7A]">{filteredObjections}</span> objections 
+              in <span className="font-semibold text-[#1B4D7A]">{filteredLibrary.length}</span> categories
+            </p>
+            <button
+              onClick={() => setSearchTerm('')}
+              className="text-[#E67E22] hover:text-[#d06b1a] font-medium"
+            >
+              Clear search
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Category Grid */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {filteredLibrary.length === 0 ? (
           <div className="text-center py-12">
+            <div 
+              className="w-32 h-32 mx-auto mb-6 rounded-full bg-cover bg-center opacity-50"
+              style={{
+                backgroundImage: 'url(https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&q=80)'
+              }}
+            />
             <p className="text-xl text-gray-500">No objections found matching your search.</p>
             <button
               onClick={() => setSearchTerm('')}
-              className="mt-4 text-[#1B4D7A] hover:underline"
+              className="mt-4 text-[#1B4D7A] hover:underline font-medium"
             >
               Clear search
             </button>
@@ -597,30 +620,38 @@ export default function TrainingLibraryPage() {
           <div className="space-y-6">
             {filteredLibrary.map(category => (
               <div key={category.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-                {/* Category Header */}
+                {/* Category Header with Image */}
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full px-6 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-stretch hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl">{category.icon}</span>
+                  {/* Category Image */}
+                  <div 
+                    className="w-32 md:w-48 flex-shrink-0 bg-cover bg-center relative"
+                    style={{ backgroundImage: `url(${category.image})` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20" />
+                  </div>
+                  
+                  {/* Category Content */}
+                  <div className="flex-1 px-6 py-5 flex items-center justify-between">
                     <div className="text-left">
                       <h2 className="text-xl font-bold text-[#1B4D7A]">{category.name}</h2>
-                      <p className="text-sm text-gray-500">{category.description}</p>
+                      <p className="text-sm text-gray-500 mt-1">{category.description}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="bg-[#E67E22] text-white text-sm font-semibold px-3 py-1 rounded-full">
-                      {category.objections.length} objection{category.objections.length !== 1 ? 's' : ''}
-                    </span>
-                    <svg
-                      className={`w-6 h-6 text-gray-400 transition-transform ${expandedCategories.includes(category.id) ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <div className="flex items-center gap-3 ml-4">
+                      <span className="bg-[#E67E22] text-white text-sm font-semibold px-3 py-1 rounded-full">
+                        {category.objections.length} objection{category.objections.length !== 1 ? 's' : ''}
+                      </span>
+                      <svg
+                        className={`w-6 h-6 text-gray-400 transition-transform ${expandedCategories.includes(category.id) ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </button>
 
@@ -639,7 +670,7 @@ export default function TrainingLibraryPage() {
                         >
                           <div className="flex-1 pr-4">
                             <p className="font-semibold text-gray-900">
-                              <span className="text-red-500 mr-2">❝</span>
+                              <span className="inline-block w-6 h-6 bg-red-100 text-red-600 rounded-full text-center text-sm font-bold mr-3 leading-6">?</span>
                               {obj.objection}
                             </p>
                           </div>
@@ -657,28 +688,32 @@ export default function TrainingLibraryPage() {
                         {expandedObjections.includes(obj.id) && (
                           <div className="px-6 pb-6 space-y-4">
                             {/* Response */}
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                              <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-5">
+                              <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                                <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </span>
                                 Recommended Response
                               </h4>
-                              <p className="text-gray-700 leading-relaxed">{obj.response}</p>
+                              <p className="text-gray-700 leading-relaxed pl-8">{obj.response}</p>
                             </div>
 
                             {/* Tips */}
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                              <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-5">
+                              <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                                <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                  </svg>
+                                </span>
                                 Pro Tips
                               </h4>
-                              <ul className="space-y-2">
+                              <ul className="space-y-2 pl-8">
                                 {obj.tips.map((tip, tipIndex) => (
-                                  <li key={tipIndex} className="flex items-start gap-2 text-gray-700">
-                                    <span className="text-blue-500 mt-1">•</span>
+                                  <li key={tipIndex} className="flex items-start gap-3 text-gray-700">
+                                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
                                     {tip}
                                   </li>
                                 ))}
@@ -686,11 +721,12 @@ export default function TrainingLibraryPage() {
                             </div>
 
                             {/* Keywords */}
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide mr-2">Keywords:</span>
                               {obj.keywords.map((keyword, kwIndex) => (
                                 <span
                                   key={kwIndex}
-                                  className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded"
+                                  className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full border border-gray-200"
                                 >
                                   {keyword}
                                 </span>
@@ -708,15 +744,23 @@ export default function TrainingLibraryPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#0F2D44] text-gray-300 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="mb-4">Part of the RepIQ Training Platform</p>
-          
+      {/* Footer with Background Image */}
+      <footer className="relative bg-[#0F2D44] text-gray-300 py-12 overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1600&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-lg mb-6">Part of the RepIQ Training Platform</p>
+          <a
             href="/"
-            className="inline-flex items-center gap-2 text-white hover:text-[#E67E22] transition-colors"
+            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors font-medium"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Return to Main Site
