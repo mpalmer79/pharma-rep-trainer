@@ -10,7 +10,7 @@ export interface UnlockRequirement {
   value: number;
   description: string;
   personaId?: string; // For persona_mastery type
-  difficulty?: 'Easy' | 'Medium' | 'Hard'; // For score/sessions on difficulty
+  difficulty?: 'easy' | 'medium' | 'hard'; // For score/sessions on difficulty
 }
 
 export interface PersonaProgression {
@@ -69,7 +69,7 @@ const personaUnlockConfig: Record<string, { requirements: UnlockRequirement[]; t
       {
         type: 'score',
         value: 65,
-        difficulty: 'Easy',
+        difficulty: 'easy',
         description: 'Score 65+ on any Easy persona',
       },
       {
@@ -86,7 +86,7 @@ const personaUnlockConfig: Record<string, { requirements: UnlockRequirement[]; t
       {
         type: 'score',
         value: 70,
-        difficulty: 'Medium',
+        difficulty: 'medium',
         description: 'Score 70+ on a Medium persona',
       },
       {
@@ -104,7 +104,7 @@ const personaUnlockConfig: Record<string, { requirements: UnlockRequirement[]; t
       {
         type: 'score',
         value: 75,
-        difficulty: 'Medium',
+        difficulty: 'medium',
         description: 'Score 75+ on any Medium persona',
       },
       {
@@ -122,9 +122,9 @@ const personaUnlockConfig: Record<string, { requirements: UnlockRequirement[]; t
 };
 
 // Get persona difficulty
-const getPersonaDifficulty = (personaId: string): 'Easy' | 'Medium' | 'Hard' => {
+const getPersonaDifficulty = (personaId: string): 'easy' | 'medium' | 'hard' => {
   const persona = personas.find(p => p.id === personaId);
-  return (persona?.difficulty as 'Easy' | 'Medium' | 'Hard') || 'Medium';
+  return (persona?.difficulty as 'easy' | 'medium' | 'hard') || 'medium';
 };
 
 export function useProgressionSystem({ sessions }: UseProgressionSystemProps): UseProgressionSystemReturn {
@@ -164,16 +164,17 @@ export function useProgressionSystem({ sessions }: UseProgressionSystemProps): U
     const totalSessions = sessions.length;
     
     // Best scores by difficulty
-    const scoresByDifficulty: Record<string, number> = { Easy: 0, Medium: 0, Hard: 0 };
+    const scoresByDifficulty: Record<string, number> = { easy: 0, medium: 0, hard: 0 };
     const scoresByPersona: Record<string, number> = {};
     
     // Calculate current streak (consecutive 70+ scores)
     let currentStreak = 0;
     const sortedSessions = [...sessions].sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
     );
     
     for (const session of sortedSessions) {
+      if (!session.feedback) continue;
       const score = session.feedback.overall;
       if (score >= 70) {
         currentStreak++;
@@ -184,6 +185,7 @@ export function useProgressionSystem({ sessions }: UseProgressionSystemProps): U
 
     // Calculate best scores
     for (const session of sessions) {
+      if (!session.feedback) continue;
       const score = session.feedback.overall;
       const difficulty = getPersonaDifficulty(session.personaId);
       
@@ -361,7 +363,7 @@ export function useProgressionSystem({ sessions }: UseProgressionSystemProps): U
     if (totalUnlocked >= 3) achievements.push('Getting Serious');
     if (totalUnlocked >= 5) achievements.push('Master Communicator');
     if (sessionStats.currentStreak >= 3) achievements.push('Hot Streak');
-    if (sessionStats.scoresByDifficulty.Hard >= 80) achievements.push('Challenge Accepted');
+    if (sessionStats.scoresByDifficulty.hard >= 80) achievements.push('Challenge Accepted');
     
     return {
       totalUnlocked,
