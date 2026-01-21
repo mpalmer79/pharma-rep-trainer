@@ -9,6 +9,7 @@ import ProgressDashboard from '@/components/ProgressDashboard';
 import SessionDetailModal from '@/components/SessionDetailModal';
 import RadarChart from '@/components/ui/RadarChart';
 import { ProgressStats } from '@/hooks/useSessionHistory';
+import { useSound } from '@/hooks/useSound';
 
 interface FeedbackData {
   score: number;
@@ -124,6 +125,7 @@ export const FeedbackStage = ({
   onViewSession,
   onRetrySession,
 }: FeedbackStageProps) => {
+  const { playSound } = useSound({ volume: 0.5 });
   const displayScore = feedback.overall || feedback.score;
   const scoreColor =
     displayScore >= 80
@@ -155,16 +157,16 @@ export const FeedbackStage = ({
       : [feedback.tips]
     : [];
 
-  // Trigger confetti for high scores
+  // Trigger confetti and celebration sound for high scores
   useEffect(() => {
     if (displayScore >= 90) {
-      // Small delay so the score is visible first
       const timer = setTimeout(() => {
         triggerConfetti();
+        playSound('celebration');
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [displayScore]);
+  }, [displayScore, playSound]);
 
   return (
     <div className="min-h-screen bg-gray-100 py-12">
