@@ -192,7 +192,7 @@ export default function MobileTrainingScreen({
 
         {/* Typing Indicator */}
         <AnimatePresence>
-          {isLoading && <TypingIndicator personaName={currentPersona.name.split(' ')[0]} />}
+          {isLoading && <TypingIndicator personaName={currentPersona.name} />}
         </AnimatePresence>
 
         <div ref={messagesEndRef} />
