@@ -10,6 +10,7 @@ import MobileTrainingScreen from '@/components/MobileTrainingScreen';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import SessionDetailModal from '@/components/SessionDetailModal';
 import FeedbackStage from '@/components/FeedbackStage';
+import ManagerDashboard from '@/components/ManagerDashboard';
 
 // Landing Page Components
 import {
@@ -67,6 +68,9 @@ export default function Home() {
   const [showProgressDashboard, setShowProgressDashboard] = useState(false);
   const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  
+  // Manager Dashboard state
+  const [showManagerDashboard, setShowManagerDashboard] = useState(false);
   
   // Session history hook
   const { 
@@ -277,6 +281,7 @@ export default function Home() {
           historyLoaded={historyLoaded}
           sessionsCount={sessions.length}
           onProgressClick={() => setShowProgressDashboard(true)}
+          onManagerDemoClick={() => setShowManagerDashboard(true)}
         />
 
         <HeroSection />
@@ -318,6 +323,11 @@ export default function Home() {
             onClose={() => setSelectedSession(null)}
             onRetry={handleRetrySession}
           />
+        )}
+
+        {/* Manager Dashboard Modal */}
+        {showManagerDashboard && (
+          <ManagerDashboard onClose={() => setShowManagerDashboard(false)} />
         )}
       </div>
     );
