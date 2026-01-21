@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import type { ProfileUpdate } from '@/types/database';
 
 export default function ProfilePage() {
   const { user, profile, loading, refreshProfile } = useAuth();
@@ -28,13 +29,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (profile) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const p = profile as any;
       setFormData({
-        full_name: p.full_name || '',
-        company: p.company || '',
-        job_title: p.job_title || '',
-        experience_level: p.experience_level || 'intermediate',
+        full_name: profile.full_name || '',
+        company: profile.company || '',
+        job_title: profile.job_title || '',
+        experience_level: profile.experience_level || 'intermediate',
       });
     }
   }, [profile]);
@@ -47,7 +46,7 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
-      const updateData = {
+      const updateData: ProfileUpdate = {
         full_name: formData.full_name,
         company: formData.company,
         job_title: formData.job_title,
@@ -55,8 +54,7 @@ export default function ProfilePage() {
         updated_at: new Date().toISOString(),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.id);
@@ -85,9 +83,6 @@ export default function ProfilePage() {
   if (!user) {
     return null;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const p = profile as any;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -252,10 +247,10 @@ export default function ProfilePage() {
                     setIsEditing(false);
                     if (profile) {
                       setFormData({
-                        full_name: p?.full_name || '',
-                        company: p?.company || '',
-                        job_title: p?.job_title || '',
-                        experience_level: p?.experience_level || 'intermediate',
+                        full_name: profile.full_name || '',
+                        company: profile.company || '',
+                        job_title: profile.job_title || '',
+                        experience_level: profile.experience_level || 'intermediate',
                       });
                     }
                   }}
@@ -274,16 +269,16 @@ export default function ProfilePage() {
               <div>
                 <p className="text-gray-500">Member since</p>
                 <p className="text-gray-900">
-                  {p?.created_at
-                    ? new Date(p.created_at).toLocaleDateString()
+                  {profile?.created_at
+                    ? new Date(profile.created_at).toLocaleDateString()
                     : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Last updated</p>
                 <p className="text-gray-900">
-                  {p?.updated_at
-                    ? new Date(p.updated_at).toLocaleDateString()
+                  {profile?.updated_at
+                    ? new Date(profile.updated_at).toLocaleDateString()
                     : 'N/A'}
                 </p>
               </div>
