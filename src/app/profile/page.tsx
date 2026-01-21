@@ -30,9 +30,9 @@ export default function ProfilePage() {
     if (profile) {
       setFormData({
         full_name: profile.full_name || '',
-        company: profile.company || '',
+        company: (profile as Record<string, unknown>).company as string || '',
         job_title: profile.job_title || '',
-        experience_level: profile.experience_level || 'intermediate',
+        experience_level: (profile as Record<string, unknown>).experience_level as string || 'intermediate',
       });
     }
   }, [profile]);
@@ -45,15 +45,18 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
+      // Use explicit typing to avoid TypeScript strict mode issues
+      const updateData = {
+        full_name: formData.full_name,
+        company: formData.company,
+        job_title: formData.job_title,
+        experience_level: formData.experience_level,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: formData.full_name,
-          company: formData.company,
-          job_title: formData.job_title,
-          experience_level: formData.experience_level,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData as never)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -245,9 +248,9 @@ export default function ProfilePage() {
                     if (profile) {
                       setFormData({
                         full_name: profile.full_name || '',
-                        company: profile.company || '',
+                        company: (profile as Record<string, unknown>).company as string || '',
                         job_title: profile.job_title || '',
-                        experience_level: profile.experience_level || 'intermediate',
+                        experience_level: (profile as Record<string, unknown>).experience_level as string || 'intermediate',
                       });
                     }
                   }}
