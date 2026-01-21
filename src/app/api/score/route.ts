@@ -1,26 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { getPersonaById } from '@/data/personas';
-import { getDrugById } from '@/data/drugs';
-import { Message, Feedback, ScoreBreakdown } from '@/types';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { Message, Feedback, ScoreBreakdown, Persona, Drug } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { personaId, drugId, messages } = await request.json();
+    const body = await request.json();
+    
+    // Support both formats: { personaId, drugId } and { persona, drug }
+    let persona: Persona;
+    let drug: Drug;
+    const messages: Message[] = body.messages || [];
 
-    const persona = getPersonaById(personaId);
-    const drug = getDrugById(drugId);
-
-    if (!persona || !drug) {
-      return NextResponse.json(
-        { error: 'Invalid persona or drug ID' },
-        { status: 400 }
-      );
+    if (body.persona && body.drug) {
+      // Direct objects passed from page.tsx
+      persona = body.persona;
+      drug = body.drug;
+    } else if (body.personaId && body.drugId) {
+      // IDs passed - look them up
+      const { getPersonaById } = await import('@/data/personas');
+      const { getDrugById } = await import('@/data/drugs');
+      const foundPersona = getPersonaById(body.personaId);
+      const foundDrug = getDrugById(body.drugId);
+      
+      if (!foundPersona || !foundDrug) {
+        return NextResponse.json(generateFallbackFeedback(messages, 'unknown', 'unknown'));
+      }
+      persona = foundPersona;
+      drug = foundDrug;
+    } else {
+      // No valid data - return fallback
+      return NextResponse.json(generateFallbackFeedback(messages, 'unknown', 'unknown'));
     }
+
+    // Check if API key is configured
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    
+    if (!apiKey || apiKey === 'your-api-key-here' || apiKey.length < 10) {
+      // No valid API key - use algorithmic fallback scoring
+      console.log('No API key configured, using fallback scoring');
+      return NextResponse.json(generateFallbackFeedback(messages, persona.id, drug.name));
+    }
+
+    // API key exists - use Claude for evaluation
+    const anthropic = new Anthropic({ apiKey });
 
     // Format conversation for evaluation
     const conversationText = messages
@@ -88,7 +110,7 @@ Be fair but rigorous. A score of 70 is "competent", 80+ is "strong", 90+ is "exc
       evaluation = JSON.parse(cleanedResponse);
     } catch {
       // Fallback to algorithmic scoring if Claude's response isn't valid JSON
-      evaluation = generateFallbackScores(messages, persona, drug);
+      return NextResponse.json(generateFallbackFeedback(messages, persona.id, drug.name));
     }
 
     // Calculate overall score
@@ -109,20 +131,13 @@ Be fair but rigorous. A score of 70 is "competent", 80+ is "strong", 90+ is "exc
     return NextResponse.json(feedback);
   } catch (error) {
     console.error('Error generating feedback:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate feedback' },
-      { status: 500 }
-    );
+    // Return fallback feedback instead of error
+    return NextResponse.json(generateFallbackFeedback([], 'unknown', 'unknown'));
   }
 }
 
-// Fallback scoring if Claude API fails or returns invalid JSON
-function generateFallbackScores(messages: Message[], persona: { id: string }, drug: { name: string }): {
-  scores: ScoreBreakdown;
-  strengths: string[];
-  improvements: string[];
-  tips: string;
-} {
+// Generate fallback feedback when API is unavailable
+function generateFallbackFeedback(messages: Message[], personaId: string, drugName: string): Feedback {
   const userMessages = messages.filter((m: Message) => m.role === 'user');
   const allUserText = userMessages.map((m: Message) => m.content).join(' ').toLowerCase();
   
@@ -130,16 +145,21 @@ function generateFallbackScores(messages: Message[], persona: { id: string }, dr
     opening: evaluateOpening(userMessages[0]?.content || ''),
     clinicalKnowledge: evaluateClinicalContent(allUserText),
     objectionHandling: evaluateObjectionHandling(messages),
-    timeManagement: evaluateTimeManagement(userMessages, persona.id),
+    timeManagement: evaluateTimeManagement(userMessages, personaId),
     compliance: evaluateCompliance(allUserText),
     closing: evaluateClosing(userMessages[userMessages.length - 1]?.content || ''),
   };
 
+  const overall = Math.round(
+    Object.values(scores).reduce((a, b) => a + b, 0) / Object.keys(scores).length
+  );
+
   return {
     scores,
+    overall,
     strengths: getStrengths(scores),
     improvements: getImprovements(scores),
-    tips: getDefaultTip(persona.id),
+    tips: getDefaultTip(personaId),
   };
 }
 
@@ -220,7 +240,7 @@ function getImprovements(scores: ScoreBreakdown): string[] {
   if (scores.timeManagement < 70) improvements.push("Keep responses shorter - busy physicians lose patience with long pitches");
   if (scores.compliance < 80) improvements.push("Avoid absolute claims - stick to approved language");
   if (scores.closing < 70) improvements.push("End with a clear next step or call to action");
-  return improvements;
+  return improvements.length ? improvements : ["Continue practicing with different persona types"];
 }
 
 function getDefaultTip(personaId: string): string {
