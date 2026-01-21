@@ -2,9 +2,11 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Mic, MicOff, X } from 'lucide-react';
 import { Persona } from '@/types';
 import { Drug } from '@/types';
 import { useSound } from '@/hooks/useSound';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -71,6 +73,49 @@ const TypingIndicator = ({ personaName }: { personaName: string }) => {
   );
 };
 
+// Voice Recording Indicator
+const VoiceRecordingIndicator = ({ 
+  interimTranscript, 
+  onCancel 
+}: { 
+  interimTranscript: string;
+  onCancel: () => void;
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="absolute bottom-full left-0 right-0 mb-2 mx-4"
+    >
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <motion.div
+              className="w-3 h-3 bg-red-500 rounded-full"
+              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+            <span className="text-red-600 font-medium text-sm">Listening...</span>
+          </div>
+          <button
+            onClick={onCancel}
+            className="p-1 hover:bg-red-100 rounded-full transition-colors"
+          >
+            <X className="w-4 h-4 text-red-500" />
+          </button>
+        </div>
+        {interimTranscript && (
+          <p className="text-gray-700 text-sm italic">"{interimTranscript}"</p>
+        )}
+        {!interimTranscript && (
+          <p className="text-gray-400 text-sm">Speak now...</p>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
 export default function MobileTrainingScreen({
   currentPersona,
   currentDrug,
@@ -91,6 +136,28 @@ export default function MobileTrainingScreen({
   const [warning30Played, setWarning30Played] = useState(false);
   const [warning10Played, setWarning10Played] = useState(false);
   const prevTimeRef = useRef(timeRemaining);
+
+  // Voice input hook
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    interimTranscript,
+    transcript,
+    startListening,
+    stopListening,
+    resetTranscript,
+    error: voiceError,
+  } = useVoiceInput({
+    continuous: true,
+    language: 'en-US',
+  });
+
+  // Update input when voice transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript);
+    }
+  }, [transcript, setInput]);
 
   // Play session start sound on mount
   useEffect(() => {
@@ -149,7 +216,25 @@ export default function MobileTrainingScreen({
     if (input.trim() && !isLoading) {
       playSound('messageSent');
       onSendMessage();
+      resetTranscript();
     }
+  };
+
+  const handleVoiceToggle = () => {
+    if (isListening) {
+      stopListening();
+      // If there's a transcript, it will be in the input field
+    } else {
+      resetTranscript();
+      setInput('');
+      startListening();
+    }
+  };
+
+  const handleVoiceCancel = () => {
+    stopListening();
+    resetTranscript();
+    setInput('');
   };
 
   const timerColor =
@@ -218,6 +303,20 @@ export default function MobileTrainingScreen({
         )}
       </AnimatePresence>
 
+      {/* Voice error banner */}
+      <AnimatePresence>
+        {voiceError && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-amber-500 text-white text-center py-2 text-sm font-medium overflow-hidden"
+          >
+            🎤 {voiceError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <AnimatePresence mode="popLayout">
@@ -264,24 +363,60 @@ export default function MobileTrainingScreen({
       </div>
 
       {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3 safe-bottom">
-        <div className="flex items-end gap-3">
+      <div className="bg-white border-t border-gray-200 px-4 py-3 safe-bottom relative">
+        {/* Voice Recording Indicator */}
+        <AnimatePresence>
+          {isListening && (
+            <VoiceRecordingIndicator
+              interimTranscript={interimTranscript || input}
+              onCancel={handleVoiceCancel}
+            />
+          )}
+        </AnimatePresence>
+
+        <div className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              disabled={isLoading}
+              placeholder={isListening ? "Listening..." : "Type or tap 🎤 to speak..."}
+              disabled={isLoading || isListening}
               rows={1}
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4D7A] focus:border-transparent resize-none text-sm disabled:bg-gray-50 disabled:text-gray-400"
+              className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4D7A] focus:border-transparent resize-none text-sm disabled:bg-gray-50 disabled:text-gray-400 ${
+                isListening ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               style={{ maxHeight: '120px' }}
             />
           </div>
+
+          {/* Voice Input Button */}
+          {isVoiceSupported && (
+            <motion.button
+              onClick={handleVoiceToggle}
+              disabled={isLoading}
+              className={`p-3 rounded-full transition-colors flex-shrink-0 ${
+                isListening
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              whileTap={{ scale: 0.95 }}
+              animate={isListening ? { scale: [1, 1.1, 1] } : {}}
+              transition={isListening ? { duration: 1, repeat: Infinity } : {}}
+            >
+              {isListening ? (
+                <MicOff className="w-5 h-5" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
+            </motion.button>
+          )}
+
+          {/* Send Button */}
           <motion.button
             onClick={handleSendMessage}
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input.trim() || isListening}
             className="p-3 bg-[#E67E22] hover:bg-[#D35400] text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             whileTap={{ scale: 0.95 }}
           >
@@ -295,9 +430,20 @@ export default function MobileTrainingScreen({
             </svg>
           </motion.button>
         </div>
-        <p className="text-xs text-gray-400 mt-2 text-center">
-          Press Enter to send • Shift+Enter for new line
-        </p>
+
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-gray-400">
+            {isVoiceSupported 
+              ? 'Enter to send • 🎤 for voice input'
+              : 'Press Enter to send • Shift+Enter for new line'
+            }
+          </p>
+          {isVoiceSupported && !isListening && (
+            <p className="text-xs text-gray-400">
+              Tap mic to speak
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
