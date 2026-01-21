@@ -34,7 +34,7 @@ PharmaRep Trainer provides:
 - **Real-Time Pressure** - Timed scenarios that simulate the urgency of actual physician encounters
 - **Instant Coaching** - AI-powered evaluation across six key competency areas with radar chart visualization
 - **Safe Practice Environment** - Make mistakes and learn without real-world consequences
-- **Progress Tracking** - Session history, skill trends, and personal bests
+- **Progress Tracking** - Session history, skill trends, and personal best
 - **Manager Dashboard** - Team analytics, leaderboards, and performance insights (demo mode)
 
 ---
