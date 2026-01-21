@@ -1,6 +1,44 @@
 'use client';
 
-export const HeroSection = () => {
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shuffle, Zap } from 'lucide-react';
+
+interface QuickPracticeResult {
+  drugId: string;
+  personaId: string;
+  drugName: string;
+  personaName: string;
+}
+
+interface HeroSectionProps {
+  onQuickPractice?: () => QuickPracticeResult;
+  onStartQuickPractice?: (drugId: string, personaId: string) => void;
+}
+
+export const HeroSection = ({ onQuickPractice, onStartQuickPractice }: HeroSectionProps) => {
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<QuickPracticeResult | null>(null);
+
+  const handleQuickPractice = () => {
+    if (!onQuickPractice || !onStartQuickPractice) {
+      // Fallback: scroll to simulator
+      const simulator = document.getElementById('simulator');
+      if (simulator) simulator.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    const selection = onQuickPractice();
+    setPreviewData(selection);
+    setShowPreview(true);
+
+    // Auto-start after showing preview
+    setTimeout(() => {
+      setShowPreview(false);
+      onStartQuickPractice(selection.drugId, selection.personaId);
+    }, 1500);
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center pt-16 lg:pt-20">
       {/* Background Image */}
@@ -52,7 +90,9 @@ export const HeroSection = () => {
           AI-powered roleplay simulations built for New England's pharmaceutical sales teams. 
           Practice with realistic physician personas before your next sales call.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <a 
             href="#simulator"
             className="px-8 py-4 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded text-center transition-colors text-lg"
@@ -66,6 +106,17 @@ export const HeroSection = () => {
             LEARN MORE
           </a>
         </div>
+
+        {/* Quick Practice Button */}
+        <motion.button
+          onClick={handleQuickPractice}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-full transition-all shadow-lg"
+          whileHover={{ scale: 1.05, boxShadow: '0 10px 40px rgba(139, 92, 246, 0.4)' }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Zap className="w-5 h-5" />
+          Quick Practice - Jump Right In!
+        </motion.button>
 
         {/* DEMO MODE Watermark */}
         <div className="mt-12 sm:mt-16">
@@ -83,6 +134,57 @@ export const HeroSection = () => {
           </div>
         </div>
       </div>
+
+      {/* Quick Practice Preview Modal */}
+      <AnimatePresence>
+        {showPreview && previewData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl"
+            >
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center"
+              >
+                <Shuffle className="w-8 h-8 text-white" />
+              </motion.div>
+              <h3 className="text-2xl font-bold text-[#1B4D7A] mb-2">Let's Go!</h3>
+              <p className="text-gray-600 mb-4">Your random selection:</p>
+              <div className="space-y-3">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <p className="text-sm text-gray-500">Product</p>
+                  <p className="font-bold text-[#1B4D7A]">{previewData.drugName}</p>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-3">
+                  <p className="text-sm text-gray-500">Physician</p>
+                  <p className="font-bold text-[#E67E22]">{previewData.personaName}</p>
+                </div>
+              </div>
+              <motion.div
+                className="mt-6 h-1 bg-gray-200 rounded-full overflow-hidden"
+              >
+                <motion.div
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 1.5, ease: 'linear' }}
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-600"
+                />
+              </motion.div>
+              <p className="mt-2 text-sm text-gray-500">Starting session...</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
