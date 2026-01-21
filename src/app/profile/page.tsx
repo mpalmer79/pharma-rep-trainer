@@ -28,11 +28,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (profile) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const p = profile as any;
       setFormData({
-        full_name: profile.full_name || '',
-        company: (profile as Record<string, unknown>).company as string || '',
-        job_title: profile.job_title || '',
-        experience_level: (profile as Record<string, unknown>).experience_level as string || 'intermediate',
+        full_name: p.full_name || '',
+        company: p.company || '',
+        job_title: p.job_title || '',
+        experience_level: p.experience_level || 'intermediate',
       });
     }
   }, [profile]);
@@ -45,7 +47,6 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
-      // Use explicit typing to avoid TypeScript strict mode issues
       const updateData = {
         full_name: formData.full_name,
         company: formData.company,
@@ -54,9 +55,10 @@ export default function ProfilePage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from('profiles')
-        .update(updateData as never)
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -83,6 +85,9 @@ export default function ProfilePage() {
   if (!user) {
     return null;
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const p = profile as any;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -247,10 +252,10 @@ export default function ProfilePage() {
                     setIsEditing(false);
                     if (profile) {
                       setFormData({
-                        full_name: profile.full_name || '',
-                        company: (profile as Record<string, unknown>).company as string || '',
-                        job_title: profile.job_title || '',
-                        experience_level: (profile as Record<string, unknown>).experience_level as string || 'intermediate',
+                        full_name: p?.full_name || '',
+                        company: p?.company || '',
+                        job_title: p?.job_title || '',
+                        experience_level: p?.experience_level || 'intermediate',
                       });
                     }
                   }}
@@ -269,16 +274,16 @@ export default function ProfilePage() {
               <div>
                 <p className="text-gray-500">Member since</p>
                 <p className="text-gray-900">
-                  {profile?.created_at
-                    ? new Date(profile.created_at).toLocaleDateString()
+                  {p?.created_at
+                    ? new Date(p.created_at).toLocaleDateString()
                     : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-gray-500">Last updated</p>
                 <p className="text-gray-900">
-                  {profile?.updated_at
-                    ? new Date(profile.updated_at).toLocaleDateString()
+                  {p?.updated_at
+                    ? new Date(p.updated_at).toLocaleDateString()
                     : 'N/A'}
                 </p>
               </div>
