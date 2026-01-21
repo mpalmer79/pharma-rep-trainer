@@ -21,7 +21,7 @@ interface FeedbackData {
   overall?: number;
   strengths: string[];
   improvements: string[];
-  tips: string[];
+  tips: string | string[];
 }
 
 interface FeedbackStageProps {
@@ -116,6 +116,13 @@ export const FeedbackStage = ({
     compliance: displayScore,
     closing: displayScore,
   };
+
+  // Normalize tips to always be an array
+  const tipsArray = feedback.tips
+    ? Array.isArray(feedback.tips)
+      ? feedback.tips
+      : [feedback.tips]
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-100 py-12">
@@ -229,14 +236,14 @@ export const FeedbackStage = ({
           </motion.div>
         )}
 
-        {feedback.tips && (Array.isArray(feedback.tips) ? feedback.tips.length > 0 : feedback.tips.length > 0) && (
+        {tipsArray.length > 0 && (
           <motion.div
             className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm"
             variants={itemVariants}
           >
             <h3 className="text-lg font-semibold text-[#1B4D7A] mb-4">Pro Tips</h3>
             <ul className="space-y-2">
-              {(Array.isArray(feedback.tips) ? feedback.tips : [feedback.tips]).map((tip, i) => (
+              {tipsArray.map((tip, i) => (
                 <motion.li
                   key={i}
                   className="text-gray-700 flex items-start gap-2"
