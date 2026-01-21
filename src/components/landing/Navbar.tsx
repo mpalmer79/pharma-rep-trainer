@@ -33,11 +33,12 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-8">
-            <a href="#platform" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors">Platform</a>
-            <a href="#training" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors">Training</a>
-            <a href="#roles" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors">Solutions</a>
-            <a href="#about" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors">About</a>
+          <div className="hidden lg:flex items-center gap-6">
+            <a href="#platform" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Platform</a>
+            <a href="#training" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Training</a>
+            <a href="#roles" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Solutions</a>
+            <a href="#about" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">About</a>
+            <a href="/training-library" className="text-[#E67E22] hover:text-[#D35400] font-semibold transition-colors text-sm">Training Library</a>
           </div>
 
           {/* Right Side - CTAs */}
@@ -98,6 +99,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
             <a href="#training" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Training</a>
             <a href="#roles" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Solutions</a>
             <a href="#about" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">About</a>
+            <a href="/training-library" onClick={handleNavClick} className="block py-2 text-[#E67E22] hover:text-[#D35400] font-semibold">Training Library</a>
             <hr />
             {/* Portfolio Links - Prominent in Mobile Menu */}
             <a 
