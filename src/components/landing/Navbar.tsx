@@ -3,14 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UserMenu } from '@/components/UserMenu';
+import { Shield } from 'lucide-react';
 
 interface NavbarProps {
   historyLoaded: boolean;
   sessionsCount: number;
   onProgressClick: () => void;
+  onManagerDemoClick?: () => void;
 }
 
-export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: NavbarProps) => {
+export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManagerDemoClick }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavClick = () => setMobileMenuOpen(false);
@@ -44,11 +46,22 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
           </div>
 
           {/* Right Side - CTAs */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Manager Demo Button */}
+            {onManagerDemoClick && (
+              <button 
+                onClick={onManagerDemoClick}
+                className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded transition-all text-sm"
+              >
+                <Shield className="w-4 h-4" />
+                Manager Demo
+              </button>
+            )}
+            
             {/* Progress Button */}
             <button 
               onClick={onProgressClick}
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-[#1B4D7A] hover:bg-[#0F2D44] text-white font-semibold rounded transition-colors text-sm"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-[#1B4D7A] hover:bg-[#0F2D44] text-white font-semibold rounded transition-colors text-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -63,7 +76,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
             
             <a 
               href="#simulator"
-              className="hidden sm:inline-flex px-5 py-2.5 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded transition-colors text-sm"
+              className="hidden sm:inline-flex px-4 py-2.5 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded transition-colors text-sm"
             >
               Try Demo
             </a>
@@ -124,6 +137,18 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
             </a>
             <hr />
             <a href="#simulator" onClick={handleNavClick} className="block w-full py-3 bg-[#E67E22] text-white font-semibold rounded text-center">Try Demo</a>
+            
+            {/* Manager Demo Button - Mobile */}
+            {onManagerDemoClick && (
+              <button 
+                onClick={() => { handleNavClick(); onManagerDemoClick(); }}
+                className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded"
+              >
+                <Shield className="w-5 h-5" />
+                Manager Demo
+              </button>
+            )}
+            
             <button 
               onClick={() => { handleNavClick(); onProgressClick(); }}
               className="flex items-center justify-center gap-2 w-full py-3 bg-[#1B4D7A] text-white font-semibold rounded"
