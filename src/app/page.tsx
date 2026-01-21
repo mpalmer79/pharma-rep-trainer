@@ -38,6 +38,15 @@ interface Message {
 
 interface FeedbackData {
   score: number;
+  scores?: {
+    opening: number;
+    clinicalKnowledge: number;
+    objectionHandling: number;
+    timeManagement: number;
+    compliance: number;
+    closing: number;
+  };
+  overall?: number;
   strengths: string[];
   improvements: string[];
   tips: string[];
@@ -83,11 +92,17 @@ export default function Home() {
     return openings[persona.id] || "Hello, how can I help you today?";
   };
 
+  // Timer effect - handles countdown and unlimited mode
   useEffect(() => {
-    if (stage !== 'training' || timeRemaining <= 0) return;
+    // Skip timer if not in training, time is up, or unlimited mode (-1)
+    if (stage !== 'training' || timeRemaining === 0 || timeRemaining === -1) return;
+    
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
-        if (prev <= 1) { endTraining(); return 0; }
+        if (prev <= 1) { 
+          endTraining(); 
+          return 0; 
+        }
         return prev - 1;
       });
     }, 1000);
@@ -98,11 +113,21 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const startTraining = useCallback(() => {
+  // Updated startTraining to support custom timer
+  const startTraining = useCallback((customTimer?: number | null) => {
     if (!selectedDrug) return;
     const persona = selectedPersona ? personas.find(p => p.id === selectedPersona) : personas[0];
     if (!selectedPersona) setSelectedPersona(persona!.id);
-    setTimeRemaining(persona!.timerSeconds);
+    
+    // Handle timer: -1 = unlimited, positive number = custom, undefined/null = default
+    if (customTimer === -1) {
+      setTimeRemaining(-1); // Unlimited mode
+    } else if (customTimer && customTimer > 0) {
+      setTimeRemaining(customTimer);
+    } else {
+      setTimeRemaining(persona!.timerSeconds);
+    }
+    
     setMessages([{ role: 'assistant', content: getOpeningLine(persona!) }]);
     setSessionStartTime(new Date());
     setStage('training');
@@ -128,7 +153,10 @@ export default function Home() {
       if (selectedDrug && selectedPersona && sessionStartTime) {
         const startTime = sessionStartTime;
         const persona = personas.find(p => p.id === selectedPersona);
-        const duration = persona ? persona.timerSeconds - timeRemaining : 0;
+        // Calculate duration - handle unlimited mode
+        const duration = timeRemaining === -1 
+          ? Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
+          : persona ? persona.timerSeconds - timeRemaining : 0;
         
         // Convert feedback to proper format for saving
         const feedbackToSave: Feedback = {
@@ -223,7 +251,9 @@ export default function Home() {
     }
   };
 
+  // Updated formatTime to handle unlimited mode
   const formatTime = (seconds: number) => {
+    if (seconds === -1) return '∞';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
