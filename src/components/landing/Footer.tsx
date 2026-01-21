@@ -1,4 +1,3 @@
-
 'use client';
 
 export const Footer = () => {
@@ -22,6 +21,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><a href="#platform" className="hover:text-white transition-colors">AI Simulations</a></li>
               <li><a href="#training" className="hover:text-white transition-colors">Training Programs</a></li>
+              <li><a href="/training-library" className="hover:text-white transition-colors">Training Library</a></li>
               <li><a href="#roles" className="hover:text-white transition-colors">Solutions</a></li>
             </ul>
           </div>
