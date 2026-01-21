@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { UserMenu } from '@/components/UserMenu';
 
 interface NavbarProps {
   historyLoaded: boolean;
@@ -24,12 +26,12 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="#" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-gradient-to-br from-[#1B4D7A] to-[#2D6A9F] flex items-center justify-center">
                 <span className="text-white font-bold text-sm sm:text-lg">R</span>
               </div>
               <span className="text-lg sm:text-xl font-bold text-[#1B4D7A]">RepIQ</span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Nav */}
@@ -38,7 +40,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
             <a href="#training" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Training</a>
             <a href="#roles" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Solutions</a>
             <a href="#about" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">About</a>
-            <a href="/training-library" className="text-[#E67E22] hover:text-[#D35400] font-semibold transition-colors text-sm">Training Library</a>
+            <Link href="/training-library" className="text-[#E67E22] hover:text-[#D35400] font-semibold transition-colors text-sm">Training Library</Link>
           </div>
 
           {/* Right Side - CTAs */}
@@ -58,18 +60,18 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
                 </span>
               )}
             </button>
+            
             <a 
               href="#simulator"
               className="hidden sm:inline-flex px-5 py-2.5 bg-[#E67E22] hover:bg-[#D35400] text-white font-semibold rounded transition-colors text-sm"
             >
-              Get Started
+              Try Demo
             </a>
-            <a 
-              href="#simulator"
-              className="hidden sm:inline-flex px-5 py-2.5 border-2 border-[#1B4D7A] text-[#1B4D7A] hover:bg-[#1B4D7A] hover:text-white font-semibold rounded transition-colors text-sm"
-            >
-              RepIQ Login
-            </a>
+            
+            {/* User Menu / Auth Buttons */}
+            <div className="hidden sm:block">
+              <UserMenu />
+            </div>
             
             {/* Mobile Menu Button */}
             <button 
@@ -99,7 +101,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
             <a href="#training" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Training</a>
             <a href="#roles" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Solutions</a>
             <a href="#about" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">About</a>
-            <a href="/training-library" onClick={handleNavClick} className="block py-2 text-[#E67E22] hover:text-[#D35400] font-semibold">Training Library</a>
+            <Link href="/training-library" onClick={handleNavClick} className="block py-2 text-[#E67E22] hover:text-[#D35400] font-semibold">Training Library</Link>
             <hr />
             {/* Portfolio Links - Prominent in Mobile Menu */}
             <a 
@@ -121,7 +123,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
               View this project on GitHub
             </a>
             <hr />
-            <a href="#simulator" onClick={handleNavClick} className="block w-full py-3 bg-[#E67E22] text-white font-semibold rounded text-center">Get Started</a>
+            <a href="#simulator" onClick={handleNavClick} className="block w-full py-3 bg-[#E67E22] text-white font-semibold rounded text-center">Try Demo</a>
             <button 
               onClick={() => { handleNavClick(); onProgressClick(); }}
               className="flex items-center justify-center gap-2 w-full py-3 bg-[#1B4D7A] text-white font-semibold rounded"
@@ -136,6 +138,16 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick }: Navbar
                 </span>
               )}
             </button>
+            {/* Mobile Auth */}
+            <div className="pt-2">
+              <Link 
+                href="/auth/login" 
+                onClick={handleNavClick}
+                className="block w-full py-3 border-2 border-[#1B4D7A] text-[#1B4D7A] font-semibold rounded text-center hover:bg-[#1B4D7A] hover:text-white transition-colors"
+              >
+                Sign In
+              </Link>
+            </div>
           </div>
         </div>
       )}
