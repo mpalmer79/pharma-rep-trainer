@@ -1,12 +1,15 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { drugs } from '@/data/drugs';
 import { personas } from '@/data/personas';
 import { useState } from 'react';
-import { Clock, Infinity, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, Infinity, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import ObjectionBank from '@/components/ObjectionBank';
 import CoachingToggle from '@/components/CoachingToggle';
+import LockedPersonaOverlay from '@/components/LockedPersonaOverlay';
+import ProgressionTierBadge from '@/components/ProgressionTierBadge';
+import { UnlockRequirement } from '@/hooks/useProgressionSystem';
 
 interface SimulatorSectionProps {
   selectedDrug: string | null;
@@ -14,6 +17,16 @@ interface SimulatorSectionProps {
   onDrugSelect: (drugId: string) => void;
   onPersonaSelect: (personaId: string) => void;
   onStartTraining: (customTimer?: number | null, coachingEnabled?: boolean) => void;
+  // Progression props
+  isPersonaUnlocked?: (personaId: string) => boolean;
+  getUnlockProgress?: (personaId: string) => number;
+  getUnlockRequirements?: (personaId: string) => UnlockRequirement[];
+  progressionStats?: {
+    currentTier: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+    nextTierProgress: number;
+    totalUnlocked: number;
+    totalPersonas: number;
+  };
 }
 
 export const SimulatorSection = ({
@@ -22,10 +35,15 @@ export const SimulatorSection = ({
   onDrugSelect,
   onPersonaSelect,
   onStartTraining,
+  isPersonaUnlocked = () => true,
+  getUnlockProgress = () => 100,
+  getUnlockRequirements = () => [],
+  progressionStats,
 }: SimulatorSectionProps) => {
   const [showTimerOptions, setShowTimerOptions] = useState(false);
   const [customTimer, setCustomTimer] = useState<number | null>(null);
   const [coachingEnabled, setCoachingEnabled] = useState(true);
+  const [lockedPersonaId, setLockedPersonaId] = useState<string | null>(null);
 
   const selectedPersonaData = personas.find(p => p.id === selectedPersona);
   const defaultTimer = selectedPersonaData?.timerSeconds || 180;
@@ -48,6 +66,37 @@ export const SimulatorSection = ({
     onStartTraining(customTimer, coachingEnabled);
   };
 
+  const handlePersonaClick = (personaId: string) => {
+    if (isPersonaUnlocked(personaId)) {
+      onPersonaSelect(personaId);
+    } else {
+      setLockedPersonaId(personaId);
+    }
+  };
+
+  // Helper to check if a requirement is met (simplified version for overlay)
+  const isRequirementMet = (req: UnlockRequirement): boolean => {
+    // This is a simplified check - the actual logic is in the hook
+    // We use the progress to estimate if it's complete
+    return getRequirementProgress(req) >= 100;
+  };
+
+  const getRequirementProgress = (req: UnlockRequirement): number => {
+    // Estimate based on overall progress
+    const personaProgress = lockedPersonaId ? getUnlockProgress(lockedPersonaId) : 0;
+    const requirements = lockedPersonaId ? getUnlockRequirements(lockedPersonaId) : [];
+    if (requirements.length === 0) return 100;
+    
+    // Distribute the overall progress across requirements
+    const reqIndex = requirements.indexOf(req);
+    if (reqIndex === -1) return 0;
+    
+    // Simple estimation - in reality, each req has its own progress
+    return Math.min(100, personaProgress * (requirements.length / (reqIndex + 1)));
+  };
+
+  const lockedPersona = lockedPersonaId ? personas.find(p => p.id === lockedPersonaId) : null;
+
   return (
     <section id="simulator" className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,6 +112,17 @@ export const SimulatorSection = ({
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Select a product and physician persona to begin your practice session
           </p>
+          
+          {/* Progression Tier Badge */}
+          {progressionStats && (
+            <div className="mt-6 flex justify-center">
+              <ProgressionTierBadge 
+                tier={progressionStats.currentTier} 
+                progress={progressionStats.nextTierProgress}
+                compact
+              />
+            </div>
+          )}
         </motion.div>
 
         <div className="max-w-4xl mx-auto">
@@ -90,38 +150,85 @@ export const SimulatorSection = ({
             </div>
           </div>
 
-          {/* Persona Selection */}
+          {/* Persona Selection with Progression */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">2. Select Physician Persona</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">2. Select Physician Persona</h3>
+              {progressionStats && (
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {progressionStats.totalUnlocked}/{progressionStats.totalPersonas} unlocked
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {personas.map((persona) => (
-                <motion.button
-                  key={persona.id}
-                  onClick={() => onPersonaSelect(persona.id)}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    selectedPersona === persona.id
-                      ? 'border-[#1B4D7A] bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-[#1B4D7A]/50 bg-white dark:bg-gray-800'
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-[#1B4D7A] dark:text-white">{persona.name}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      persona.difficulty === 'Hard' 
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' 
-                        : persona.difficulty === 'Medium'
-                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                        : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                    }`}>
-                      {persona.difficulty}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{persona.title}</div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">{persona.description}</div>
-                </motion.button>
-              ))}
+              {personas.map((persona) => {
+                const isUnlocked = isPersonaUnlocked(persona.id);
+                const unlockProgress = getUnlockProgress(persona.id);
+                
+                return (
+                  <motion.button
+                    key={persona.id}
+                    onClick={() => handlePersonaClick(persona.id)}
+                    className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                      !isUnlocked
+                        ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50 cursor-pointer'
+                        : selectedPersona === persona.id
+                        ? 'border-[#1B4D7A] bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-[#1B4D7A]/50 bg-white dark:bg-gray-800'
+                    }`}
+                    whileHover={{ scale: isUnlocked ? 1.02 : 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {/* Lock overlay for locked personas */}
+                    {!isUnlocked && (
+                      <div className="absolute inset-0 bg-gray-900/10 dark:bg-gray-900/30 rounded-xl flex items-center justify-center">
+                        <div className="bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg">
+                          <Lock className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={`${!isUnlocked ? 'opacity-50' : ''}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${isUnlocked ? 'text-[#1B4D7A] dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {persona.name}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          persona.difficulty === 'Hard' 
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' 
+                            : persona.difficulty === 'Medium'
+                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                            : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                        }`}>
+                          {persona.difficulty}
+                        </span>
+                      </div>
+                      <div className={`text-sm ${isUnlocked ? 'text-gray-500 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                        {persona.title}
+                      </div>
+                      <div className={`text-xs mt-1 line-clamp-2 ${isUnlocked ? 'text-gray-400 dark:text-gray-500' : 'text-gray-300 dark:text-gray-600'}`}>
+                        {persona.description}
+                      </div>
+                    </div>
+
+                    {/* Unlock progress bar for locked personas */}
+                    {!isUnlocked && unlockProgress > 0 && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          <span>Progress</span>
+                          <span>{unlockProgress}%</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-[#E67E22] rounded-full transition-all"
+                            style={{ width: `${unlockProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
 
@@ -226,6 +333,20 @@ export const SimulatorSection = ({
           </motion.button>
         </div>
       </div>
+
+      {/* Locked Persona Overlay */}
+      <AnimatePresence>
+        {lockedPersonaId && lockedPersona && (
+          <LockedPersonaOverlay
+            personaName={lockedPersona.name}
+            requirements={getUnlockRequirements(lockedPersonaId)}
+            progress={getUnlockProgress(lockedPersonaId)}
+            onClose={() => setLockedPersonaId(null)}
+            isRequirementMet={isRequirementMet}
+            getRequirementProgress={getRequirementProgress}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 };
