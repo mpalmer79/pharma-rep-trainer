@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
+import { ObjectionBank } from '@/components/ObjectionBank';
 import { drugs } from '@/data/drugs';
 import { personas } from '@/data/personas';
 import { Shuffle, Clock, Infinity, Settings2 } from 'lucide-react';
@@ -27,6 +28,7 @@ export const SimulatorSection = ({
   const [timerMode, setTimerMode] = useState<TimerMode>('default');
   const [customMinutes, setCustomMinutes] = useState(3);
   const [showTimerSettings, setShowTimerSettings] = useState(false);
+  const [showPrepSheet, setShowPrepSheet] = useState(false);
 
   const getPersonaImage = (personaId: string) => {
     const imageMap: Record<string, string> = {
@@ -63,6 +65,8 @@ export const SimulatorSection = ({
   };
 
   const selectedPersonaData = personas.find((p) => p.id === selectedPersona);
+  const selectedDrugData = drugs.find((d) => d.id === selectedDrug);
+  
   const getTimerDisplay = () => {
     if (timerMode === 'unlimited') return '∞ Unlimited';
     if (timerMode === 'custom') return `${customMinutes}:00 Custom`;
@@ -73,6 +77,9 @@ export const SimulatorSection = ({
     }
     return 'Select persona';
   };
+
+  // Auto-open prep sheet when both are selected
+  const bothSelected = selectedDrug && selectedPersona;
 
   return (
     <section id="simulator" className="py-20 lg:py-28">
@@ -215,6 +222,26 @@ export const SimulatorSection = ({
                 ))}
               </div>
             </div>
+
+            {/* Prep Sheet / Objection Bank */}
+            <AnimatePresence>
+              {bothSelected && selectedDrugData && selectedPersonaData && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-8 overflow-hidden"
+                >
+                  <ObjectionBank
+                    drug={selectedDrugData}
+                    persona={selectedPersonaData}
+                    isOpen={showPrepSheet}
+                    onToggle={() => setShowPrepSheet(!showPrepSheet)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Timer Settings */}
             <div className="mb-8">
