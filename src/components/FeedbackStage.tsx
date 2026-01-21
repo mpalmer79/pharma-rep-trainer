@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { TrainingSession } from '@/types';
 import { Persona } from '@/types';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import ProgressDashboard from '@/components/ProgressDashboard';
 import SessionDetailModal from '@/components/SessionDetailModal';
 import RadarChart from '@/components/ui/RadarChart';
@@ -77,6 +79,35 @@ const scoreVariants = {
   },
 };
 
+// Confetti celebration function
+const triggerConfetti = () => {
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  const colors = ['#1B4D7A', '#E67E22', '#22c55e', '#3b82f6', '#a855f7'];
+
+  (function frame() {
+    confetti({
+      particleCount: 5,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors: colors,
+    });
+    confetti({
+      particleCount: 5,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors: colors,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  })();
+};
+
 export const FeedbackStage = ({
   feedback,
   currentPersona,
@@ -124,6 +155,17 @@ export const FeedbackStage = ({
       : [feedback.tips]
     : [];
 
+  // Trigger confetti for high scores
+  useEffect(() => {
+    if (displayScore >= 90) {
+      // Small delay so the score is visible first
+      const timer = setTimeout(() => {
+        triggerConfetti();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [displayScore]);
+
   return (
     <div className="min-h-screen bg-gray-100 py-12">
       <motion.div
@@ -136,8 +178,14 @@ export const FeedbackStage = ({
           <div className="w-16 h-16 rounded bg-gradient-to-br from-[#1B4D7A] to-[#2D6A9F] flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">R</span>
           </div>
-          <h1 className="text-3xl font-bold text-[#1B4D7A] mb-2">Session Complete</h1>
-          <p className="text-gray-600">Here&apos;s how you performed</p>
+          <h1 className="text-3xl font-bold text-[#1B4D7A] mb-2">
+            {displayScore >= 90 ? '🎉 Outstanding Performance!' : 'Session Complete'}
+          </h1>
+          <p className="text-gray-600">
+            {displayScore >= 90
+              ? 'You crushed it! Keep up the excellent work.'
+              : "Here's how you performed"}
+          </p>
         </motion.div>
 
         {/* Overall Score */}
@@ -155,6 +203,16 @@ export const FeedbackStage = ({
             {displayScore}
           </motion.p>
           <p className="text-gray-500 mt-2">out of 100</p>
+          {displayScore >= 90 && (
+            <motion.p
+              className="mt-3 text-green-600 font-semibold"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              ⭐ Excellent Score!
+            </motion.p>
+          )}
         </motion.div>
 
         {/* Radar Chart - Score Breakdown */}
