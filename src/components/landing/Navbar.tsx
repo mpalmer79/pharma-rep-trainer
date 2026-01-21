@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UserMenu } from '@/components/UserMenu';
 import { Shield } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface NavbarProps {
   historyLoaded: boolean;
@@ -23,7 +24,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
   }, [mobileMenuOpen]);
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white shadow-sm">
+    <nav className="fixed top-0 w-full z-50 bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
@@ -32,21 +33,24 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-gradient-to-br from-[#1B4D7A] to-[#2D6A9F] flex items-center justify-center">
                 <span className="text-white font-bold text-sm sm:text-lg">R</span>
               </div>
-              <span className="text-lg sm:text-xl font-bold text-[#1B4D7A]">RepIQ</span>
+              <span className="text-lg sm:text-xl font-bold text-[#1B4D7A] dark:text-white">RepIQ</span>
             </Link>
           </div>
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-6">
-            <a href="#platform" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Platform</a>
-            <a href="#training" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Training</a>
-            <a href="#roles" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">Solutions</a>
-            <a href="#about" className="text-gray-700 hover:text-[#E67E22] font-medium transition-colors text-sm">About</a>
+            <a href="#platform" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">Platform</a>
+            <a href="#training" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">Training</a>
+            <a href="#roles" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">Solutions</a>
+            <a href="#about" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">About</a>
             <Link href="/training-library" className="text-[#E67E22] hover:text-[#D35400] font-semibold transition-colors text-sm">Training Library</Link>
           </div>
 
           {/* Right Side - CTAs */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Theme Toggle */}
+            <ThemeToggle variant="dropdown" />
+
             {/* Manager Demo Button */}
             {onManagerDemoClick && (
               <button 
@@ -89,7 +93,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-600"
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-300"
               aria-label="Menu"
             >
               {mobileMenuOpen ? (
@@ -108,14 +112,22 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t shadow-lg">
+        <div className="lg:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-700 shadow-lg">
           <div className="px-4 py-6 space-y-4">
-            <a href="#platform" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Platform</a>
-            <a href="#training" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Training</a>
-            <a href="#roles" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">Solutions</a>
-            <a href="#about" onClick={handleNavClick} className="block py-2 text-gray-700 hover:text-[#E67E22] font-medium">About</a>
+            <a href="#platform" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">Platform</a>
+            <a href="#training" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">Training</a>
+            <a href="#roles" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">Solutions</a>
+            <a href="#about" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">About</a>
             <Link href="/training-library" onClick={handleNavClick} className="block py-2 text-[#E67E22] hover:text-[#D35400] font-semibold">Training Library</Link>
-            <hr />
+            <hr className="dark:border-gray-700" />
+            
+            {/* Theme Toggle in Mobile Menu */}
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-700 dark:text-gray-300 font-medium">Theme</span>
+              <ThemeToggle variant="dropdown" />
+            </div>
+            <hr className="dark:border-gray-700" />
+            
             {/* Portfolio Links - Prominent in Mobile Menu */}
             <a 
               href="https://www.linkedin.com/in/michael-palmer-qa/" 
@@ -135,7 +147,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
               View this project on GitHub
             </a>
-            <hr />
+            <hr className="dark:border-gray-700" />
             <a href="#simulator" onClick={handleNavClick} className="block w-full py-3 bg-[#E67E22] text-white font-semibold rounded text-center">Try Demo</a>
             
             {/* Manager Demo Button - Mobile */}
@@ -168,7 +180,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
               <Link 
                 href="/auth/login" 
                 onClick={handleNavClick}
-                className="block w-full py-3 border-2 border-[#1B4D7A] text-[#1B4D7A] font-semibold rounded text-center hover:bg-[#1B4D7A] hover:text-white transition-colors"
+                className="block w-full py-3 border-2 border-[#1B4D7A] text-[#1B4D7A] dark:text-white dark:border-white font-semibold rounded text-center hover:bg-[#1B4D7A] hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-colors"
               >
                 Sign In
               </Link>
