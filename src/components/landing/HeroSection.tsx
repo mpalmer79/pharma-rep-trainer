@@ -66,6 +66,22 @@ export const HeroSection = () => {
             LEARN MORE
           </a>
         </div>
+
+        {/* DEMO MODE Watermark */}
+        <div className="mt-12 sm:mt-16">
+          <div className="inline-block px-8 py-4 border-4 border-white/30 rounded-lg bg-white/5 backdrop-blur-sm">
+            <span 
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[0.2em] text-white/25 select-none"
+              style={{ 
+                fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+                textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                letterSpacing: '0.15em'
+              }}
+            >
+              DEMO MODE
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );
