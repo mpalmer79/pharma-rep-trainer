@@ -11,6 +11,7 @@ import ProgressDashboard from '@/components/ProgressDashboard';
 import SessionDetailModal from '@/components/SessionDetailModal';
 import FeedbackStage from '@/components/FeedbackStage';
 import ManagerDashboard from '@/components/ManagerDashboard';
+import UnlockNotification from '@/components/UnlockNotification';
 
 // Landing Page Components
 import {
@@ -28,7 +29,7 @@ import {
 } from '@/components/landing';
 
 // Hooks
-import { useSessionHistory, useQuickPractice } from '@/hooks';
+import { useSessionHistory, useQuickPractice, useProgressionSystem } from '@/hooks';
 
 type Stage = 'landing' | 'training' | 'feedback';
 
@@ -75,6 +76,9 @@ export default function Home() {
   // Coaching mode state
   const [coachingEnabled, setCoachingEnabled] = useState(true);
   
+  // Unlock notification state
+  const [newlyUnlockedPersonas, setNewlyUnlockedPersonas] = useState<string[]>([]);
+  
   // Session history hook
   const { 
     sessions, 
@@ -85,10 +89,21 @@ export default function Home() {
     getStats 
   } = useSessionHistory();
 
-  // Quick practice hook
+  // Progression system hook
+  const {
+    progression,
+    stats: progressionStats,
+    isPersonaUnlocked,
+    getUnlockProgress,
+    getUnlockRequirements,
+    checkAndUnlock,
+  } = useProgressionSystem({ sessions });
+
+  // Quick practice hook - only offer unlocked personas
   const { getRandomSelection } = useQuickPractice({
     recentSessions: sessions,
     avoidRecentCount: 3,
+    filterPersonas: (personaId) => isPersonaUnlocked(personaId),
   });
 
   const currentPersona = personas.find(p => p.id === selectedPersona);
@@ -104,6 +119,16 @@ export default function Home() {
     };
     return openings[persona.id] || "Hello, how can I help you today?";
   };
+
+  // Check for new unlocks after feedback stage
+  useEffect(() => {
+    if (stage === 'feedback' && feedback) {
+      const newUnlocks = checkAndUnlock();
+      if (newUnlocks.length > 0) {
+        setNewlyUnlockedPersonas(newUnlocks);
+      }
+    }
+  }, [stage, feedback, checkAndUnlock]);
 
   // Timer effect - handles countdown and unlimited mode
   useEffect(() => {
@@ -156,6 +181,12 @@ export default function Home() {
     const persona = personas.find(p => p.id === personaId);
     if (!persona) return;
 
+    // Check if persona is unlocked
+    if (!isPersonaUnlocked(personaId)) {
+      // This shouldn't happen if filtering is working, but just in case
+      return;
+    }
+
     setSelectedDrug(drugId);
     setSelectedPersona(personaId);
     setCoachingEnabled(true); // Enable coaching by default for quick practice
@@ -163,7 +194,7 @@ export default function Home() {
     setMessages([{ role: 'assistant', content: getOpeningLine(persona) }]);
     setSessionStartTime(new Date());
     setStage('training');
-  }, []);
+  }, [isPersonaUnlocked]);
 
   const endTraining = useCallback(async () => {
     // Handle early session end with minimal interaction
@@ -311,6 +342,11 @@ export default function Home() {
 
   // Handle retrying a session with same setup
   const handleRetrySession = (drugId: string, personaId: string) => {
+    // Check if persona is still unlocked (it should be, but check anyway)
+    if (!isPersonaUnlocked(personaId)) {
+      return;
+    }
+    
     setSelectedSession(null);
     setShowProgressDashboard(false);
     setSelectedDrug(drugId);
@@ -383,6 +419,10 @@ export default function Home() {
           onDrugSelect={setSelectedDrug}
           onPersonaSelect={setSelectedPersona}
           onStartTraining={startTraining}
+          isPersonaUnlocked={isPersonaUnlocked}
+          getUnlockProgress={getUnlockProgress}
+          getUnlockRequirements={getUnlockRequirements}
+          progressionStats={progressionStats}
         />
         
         <CTASection />
@@ -414,6 +454,14 @@ export default function Home() {
         {showManagerDashboard && (
           <ManagerDashboard onClose={() => setShowManagerDashboard(false)} />
         )}
+
+        {/* Unlock Notification */}
+        {newlyUnlockedPersonas.length > 0 && (
+          <UnlockNotification
+            unlockedPersonaIds={newlyUnlockedPersonas}
+            onDismiss={() => setNewlyUnlockedPersonas([])}
+          />
+        )}
       </div>
     );
   }
@@ -440,22 +488,32 @@ export default function Home() {
   // ==================== FEEDBACK STAGE ====================
   if (stage === 'feedback' && feedback) {
     return (
-      <FeedbackStage
-        feedback={feedback}
-        currentPersona={currentPersona}
-        showProgressDashboard={showProgressDashboard}
-        setShowProgressDashboard={setShowProgressDashboard}
-        selectedSession={selectedSession}
-        setSelectedSession={setSelectedSession}
-        sessions={sessions}
-        getStats={getStats}
-        deleteSession={deleteSession}
-        clearHistory={clearHistory}
-        onReset={resetTraining}
-        onRetry={handleRetryFromFeedback}
-        onViewSession={handleViewSession}
-        onRetrySession={handleRetrySession}
-      />
+      <>
+        <FeedbackStage
+          feedback={feedback}
+          currentPersona={currentPersona}
+          showProgressDashboard={showProgressDashboard}
+          setShowProgressDashboard={setShowProgressDashboard}
+          selectedSession={selectedSession}
+          setSelectedSession={setSelectedSession}
+          sessions={sessions}
+          getStats={getStats}
+          deleteSession={deleteSession}
+          clearHistory={clearHistory}
+          onReset={resetTraining}
+          onRetry={handleRetryFromFeedback}
+          onViewSession={handleViewSession}
+          onRetrySession={handleRetrySession}
+        />
+        
+        {/* Unlock Notification on Feedback Stage */}
+        {newlyUnlockedPersonas.length > 0 && (
+          <UnlockNotification
+            unlockedPersonaIds={newlyUnlockedPersonas}
+            onDismiss={() => setNewlyUnlockedPersonas([])}
+          />
+        )}
+      </>
     );
   }
 
