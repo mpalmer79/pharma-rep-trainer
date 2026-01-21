@@ -194,13 +194,13 @@ export const SimulatorSection = ({
                           {persona.name}
                         </span>
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          persona.difficulty === 'Hard' 
+                          persona.difficulty === 'hard' 
                             ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' 
-                            : persona.difficulty === 'Medium'
+                            : persona.difficulty === 'medium'
                             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
                             : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                         }`}>
-                          {persona.difficulty}
+                          {persona.difficulty.charAt(0).toUpperCase() + persona.difficulty.slice(1)}
                         </span>
                       </div>
                       <div className={`text-sm ${isUnlocked ? 'text-gray-500 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}`}>
