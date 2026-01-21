@@ -3,17 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-
-interface Profile {
-  id: string;
-  full_name: string | null;
-  company: string | null;
-  job_title: string | null;
-  experience_level: string;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import type { Profile } from '@/types/database';
 
 interface AuthContextType {
   user: User | null;
@@ -48,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error fetching profile:', error);
         return null;
       }
-      return data as Profile;
+      return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
       return null;
@@ -63,7 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -73,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
