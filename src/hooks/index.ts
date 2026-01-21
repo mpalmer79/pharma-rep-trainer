@@ -5,3 +5,4 @@ export { useHybridSession } from './useHybridSession';
 export type { SessionRecord, ProgressStats as HybridProgressStats } from './useHybridSession';
 export { useSupabaseSession } from './useSupabaseSession';
 export { useSound } from './useSound';
+export { useQuickPractice } from './useQuickPractice';
