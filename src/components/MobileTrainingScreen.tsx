@@ -192,7 +192,7 @@ export default function MobileTrainingScreen({
 
         {/* Typing Indicator */}
         <AnimatePresence>
-          {isLoading && <TypingIndicator personaName={currentPersona.name} />}
+          {isLoading && <TypingIndicator personaName={currentPersona.name.startsWith('Dr.') ? `Dr. ${currentPersona.name.split(' ').pop()}` : currentPersona.name.split(' ')[0]} />}
         </AnimatePresence>
 
         <div ref={messagesEndRef} />
