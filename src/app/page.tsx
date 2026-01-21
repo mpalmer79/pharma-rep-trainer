@@ -50,7 +50,7 @@ interface FeedbackData {
   overall?: number;
   strengths: string[];
   improvements: string[];
-  tips: string[];
+  tips: string | string[];
 }
 
 export default function Home() {
@@ -157,11 +157,27 @@ export default function Home() {
   }, []);
 
   const endTraining = useCallback(async () => {
+    // Handle early session end with minimal interaction
     if (messages.length < 2) {
-      setFeedback({ score: 0, strengths: [], improvements: ['Session ended before meaningful interaction'], tips: ['Try to engage more with the physician persona'] });
+      setFeedback({ 
+        score: 0, 
+        overall: 0,
+        scores: {
+          opening: 0,
+          clinicalKnowledge: 0,
+          objectionHandling: 0,
+          timeManagement: 0,
+          compliance: 0,
+          closing: 0,
+        },
+        strengths: [], 
+        improvements: ['Session ended before meaningful interaction'], 
+        tips: 'Try to engage more with the physician persona' 
+      });
       setStage('feedback');
       return;
     }
+    
     setIsLoading(true);
     try {
       const response = await fetch('/api/score', {
@@ -170,7 +186,25 @@ export default function Home() {
         body: JSON.stringify({ messages, drug: currentDrug, persona: currentPersona })
       });
       const data = await response.json();
-      setFeedback(data);
+      
+      // Ensure data has required fields (handle API errors gracefully)
+      const validatedFeedback: FeedbackData = {
+        score: data.overall || data.score || 50,
+        overall: data.overall || data.score || 50,
+        scores: data.scores || {
+          opening: 50,
+          clinicalKnowledge: 50,
+          objectionHandling: 50,
+          timeManagement: 50,
+          compliance: 50,
+          closing: 50,
+        },
+        strengths: data.strengths || ['Completed the session'],
+        improvements: data.improvements || [],
+        tips: data.tips || 'Keep practicing to improve your skills!',
+      };
+      
+      setFeedback(validatedFeedback);
       
       // Save session to history
       if (selectedDrug && selectedPersona && sessionStartTime) {
@@ -183,18 +217,20 @@ export default function Home() {
         
         // Convert feedback to proper format for saving
         const feedbackToSave: Feedback = {
-          scores: data.scores || {
-            opening: data.score || 50,
-            clinicalKnowledge: data.score || 50,
-            objectionHandling: data.score || 50,
-            timeManagement: data.score || 50,
-            compliance: data.score || 50,
-            closing: data.score || 50,
+          scores: validatedFeedback.scores || {
+            opening: validatedFeedback.score || 50,
+            clinicalKnowledge: validatedFeedback.score || 50,
+            objectionHandling: validatedFeedback.score || 50,
+            timeManagement: validatedFeedback.score || 50,
+            compliance: validatedFeedback.score || 50,
+            closing: validatedFeedback.score || 50,
           },
-          overall: data.overall || data.score || 50,
-          strengths: data.strengths || [],
-          improvements: data.improvements || [],
-          tips: data.tips || '',
+          overall: validatedFeedback.overall || validatedFeedback.score || 50,
+          strengths: validatedFeedback.strengths || [],
+          improvements: validatedFeedback.improvements || [],
+          tips: Array.isArray(validatedFeedback.tips) 
+            ? validatedFeedback.tips.join(' ') 
+            : (validatedFeedback.tips || ''),
         };
         
         saveSession(
@@ -206,8 +242,23 @@ export default function Home() {
           duration
         );
       }
-    } catch {
-      setFeedback({ score: 50, strengths: ['Completed the session'], improvements: ['Unable to generate detailed feedback'], tips: ['Try again for a more detailed analysis'] });
+    } catch (error) {
+      console.error('Error getting feedback:', error);
+      setFeedback({ 
+        score: 50, 
+        overall: 50,
+        scores: {
+          opening: 50,
+          clinicalKnowledge: 50,
+          objectionHandling: 50,
+          timeManagement: 50,
+          compliance: 50,
+          closing: 50,
+        },
+        strengths: ['Completed the session'], 
+        improvements: ['Unable to generate detailed feedback'], 
+        tips: 'Try again for a more detailed analysis' 
+      });
     }
     setIsLoading(false);
     setStage('feedback');
@@ -226,7 +277,9 @@ export default function Home() {
         body: JSON.stringify({ messages: [...messages, { role: 'user', content: userMessage }], drug: currentDrug, persona: currentPersona })
       });
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+      // Handle both successful response and error response
+      const assistantMessage = data.message || "I'm considering what you've said. Could you tell me more?";
+      setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble responding. Let's continue our discussion." }]);
     }
