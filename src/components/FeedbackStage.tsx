@@ -229,7 +229,7 @@ export const FeedbackStage = ({
           </motion.div>
         )}
 
-        {feedback.tips && (typeof feedback.tips === 'string' ? feedback.tips.length > 0 : feedback.tips.length > 0) && (
+        {feedback.tips && (Array.isArray(feedback.tips) ? feedback.tips.length > 0 : feedback.tips.length > 0) && (
           <motion.div
             className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm"
             variants={itemVariants}
