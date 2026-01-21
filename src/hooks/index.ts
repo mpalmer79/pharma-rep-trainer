@@ -6,3 +6,4 @@ export type { SessionRecord, ProgressStats as HybridProgressStats } from './useH
 export { useSupabaseSession } from './useSupabaseSession';
 export { useSound } from './useSound';
 export { useQuickPractice } from './useQuickPractice';
+export { useVoiceInput } from './useVoiceInput';
