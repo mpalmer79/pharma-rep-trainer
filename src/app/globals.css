@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark Mode Base Transitions */
+@layer base {
+  html {
+    @apply transition-colors duration-200;
+  }
+}
+
 /* Color Variables */
 :root {
   --color-navy: #1B4D7A;
@@ -29,7 +36,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-/* Smooth Scrollbar */
+/* Smooth Scrollbar - Light Mode */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -47,6 +54,19 @@ h1, h2, h3, h4, h5, h6 {
   background: #94a3b8;
 }
 
+/* Smooth Scrollbar - Dark Mode */
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
 /* Button Transitions */
 button, a {
   transition: all 0.2s ease-in-out;
@@ -60,10 +80,20 @@ a:focus-visible {
   box-shadow: 0 0 0 3px rgba(27, 77, 122, 0.3);
 }
 
+.dark input:focus,
+.dark button:focus-visible,
+.dark a:focus-visible {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
 /* Selection Color */
 ::selection {
   background-color: rgba(230, 126, 34, 0.2);
   color: inherit;
+}
+
+.dark ::selection {
+  background-color: rgba(230, 126, 34, 0.4);
 }
 
 /* Bounce Animation for Loading Dots */
@@ -207,9 +237,14 @@ a:focus-visible {
   }
 }
 
-/* Image Loading */
+/* Image Loading - Light Mode */
 img {
   background-color: #f1f5f9;
+}
+
+/* Image Loading - Dark Mode */
+.dark img {
+  background-color: #374151;
 }
 
 /* Gradient Text (if needed) */
@@ -225,6 +260,10 @@ img {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+.dark .shadow-professional {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
 /* Card Hover Effect */
 .card-hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -233,6 +272,10 @@ img {
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
 /* Orange Underline Accent */
