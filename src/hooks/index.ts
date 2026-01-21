@@ -1,22 +1,22 @@
-export { default as useSessionHistory } from './useSessionHistory';
+'use client';
+
+// Session History
+export { useSessionHistory } from './useSessionHistory';
 export type { ProgressStats, SessionHistoryData } from './useSessionHistory';
-export { useScrollAnimation } from './useScrollAnimation';
+
+// Hybrid Session (Supabase + Local)
 export { useHybridSession } from './useHybridSession';
 export type { SessionRecord, ProgressStats as HybridProgressStats } from './useHybridSession';
+
+// Supabase Session
 export { useSupabaseSession } from './useSupabaseSession';
-export { useSound } from './useSound';
-export { useQuickPractice } from './useQuickPractice';
-export { useVoiceInput } from './useVoiceInput';
-export { useSessionHistory } from './useSessionHistory';
-export { useQuickPractice } from './useQuickPractice';
+
+// UI/UX Hooks
 export { useScrollAnimation } from './useScrollAnimation';
 export { useSound } from './useSound';
 export { useVoiceInput } from './useVoiceInput';
 export { useCoachingMode } from './useCoachingMode';
-export { useSessionHistory } from './useSessionHistory';
+
+// Feature Hooks
 export { useQuickPractice } from './useQuickPractice';
-export { useScrollAnimation } from './useScrollAnimation';
-export { useSound } from './useSound';
-export { useVoiceInput } from './useVoiceInput';
-export { useCoachingMode } from './useCoachingMode';
 export { useProgressionSystem } from './useProgressionSystem';
