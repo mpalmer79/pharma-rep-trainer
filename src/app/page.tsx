@@ -28,7 +28,7 @@ import {
 } from '@/components/landing';
 
 // Hooks
-import { useSessionHistory } from '@/hooks/useSessionHistory';
+import { useSessionHistory, useQuickPractice } from '@/hooks';
 
 type Stage = 'landing' | 'training' | 'feedback';
 
@@ -81,6 +81,12 @@ export default function Home() {
     clearHistory, 
     getStats 
   } = useSessionHistory();
+
+  // Quick practice hook
+  const { getRandomSelection } = useQuickPractice({
+    recentSessions: sessions,
+    avoidRecentCount: 3,
+  });
 
   const currentPersona = personas.find(p => p.id === selectedPersona);
   const currentDrug = drugs.find(d => d.id === selectedDrug);
@@ -136,6 +142,19 @@ export default function Home() {
     setSessionStartTime(new Date());
     setStage('training');
   }, [selectedDrug, selectedPersona]);
+
+  // Quick practice start - sets drug/persona and starts immediately
+  const handleQuickPracticeStart = useCallback((drugId: string, personaId: string) => {
+    const persona = personas.find(p => p.id === personaId);
+    if (!persona) return;
+
+    setSelectedDrug(drugId);
+    setSelectedPersona(personaId);
+    setTimeRemaining(persona.timerSeconds);
+    setMessages([{ role: 'assistant', content: getOpeningLine(persona) }]);
+    setSessionStartTime(new Date());
+    setStage('training');
+  }, []);
 
   const endTraining = useCallback(async () => {
     if (messages.length < 2) {
@@ -284,7 +303,10 @@ export default function Home() {
           onManagerDemoClick={() => setShowManagerDashboard(true)}
         />
 
-        <HeroSection />
+        <HeroSection 
+          onQuickPractice={getRandomSelection}
+          onStartQuickPractice={handleQuickPracticeStart}
+        />
         <TrustStrip />
         <PlatformSection />
         <TrainingProgramsSection />
