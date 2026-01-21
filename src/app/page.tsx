@@ -72,6 +72,9 @@ export default function Home() {
   // Manager Dashboard state
   const [showManagerDashboard, setShowManagerDashboard] = useState(false);
   
+  // Coaching mode state
+  const [coachingEnabled, setCoachingEnabled] = useState(true);
+  
   // Session history hook
   const { 
     sessions, 
@@ -123,11 +126,16 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Updated startTraining to support custom timer
-  const startTraining = useCallback((customTimer?: number | null) => {
+  // Updated startTraining to support custom timer and coaching mode
+  const startTraining = useCallback((customTimer?: number | null, coaching?: boolean) => {
     if (!selectedDrug) return;
     const persona = selectedPersona ? personas.find(p => p.id === selectedPersona) : personas[0];
     if (!selectedPersona) setSelectedPersona(persona!.id);
+    
+    // Set coaching state (default to true if not specified)
+    if (coaching !== undefined) {
+      setCoachingEnabled(coaching);
+    }
     
     // Handle timer: -1 = unlimited, positive number = custom, undefined/null = default
     if (customTimer === -1) {
@@ -143,13 +151,14 @@ export default function Home() {
     setStage('training');
   }, [selectedDrug, selectedPersona]);
 
-  // Quick practice start - sets drug/persona and starts immediately
+  // Quick practice start - sets drug/persona and starts immediately with coaching enabled
   const handleQuickPracticeStart = useCallback((drugId: string, personaId: string) => {
     const persona = personas.find(p => p.id === personaId);
     if (!persona) return;
 
     setSelectedDrug(drugId);
     setSelectedPersona(personaId);
+    setCoachingEnabled(true); // Enable coaching by default for quick practice
     setTimeRemaining(persona.timerSeconds);
     setMessages([{ role: 'assistant', content: getOpeningLine(persona) }]);
     setSessionStartTime(new Date());
@@ -313,6 +322,7 @@ export default function Home() {
         setTimeRemaining(persona.timerSeconds);
         setMessages([{ role: 'assistant', content: getOpeningLine(persona) }]);
         setSessionStartTime(new Date());
+        setCoachingEnabled(true); // Enable coaching on retry
         setStage('training');
       }
     }, 100);
@@ -335,7 +345,7 @@ export default function Home() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle retry from feedback
+  // Handle retry from feedback - maintains current coaching state
   const handleRetryFromFeedback = () => {
     setMessages([]);
     setFeedback(null);
@@ -348,7 +358,7 @@ export default function Home() {
   // ==================== LANDING PAGE ====================
   if (stage === 'landing') {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         <Navbar 
           historyLoaded={historyLoaded}
           sessionsCount={sessions.length}
@@ -422,6 +432,7 @@ export default function Home() {
         onSendMessage={sendMessage}
         onEndTraining={endTraining}
         formatTime={formatTime}
+        coachingEnabled={coachingEnabled}
       />
     );
   }
