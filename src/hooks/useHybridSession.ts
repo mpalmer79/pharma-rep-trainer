@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface SessionData {
+export interface SessionRecord {
   id: string;
   drug: string;
   persona: string;
@@ -19,9 +19,17 @@ interface SessionData {
   };
 }
 
+export interface ProgressStats {
+  totalSessions: number;
+  avgScore: number;
+  totalTime: number;
+  bestScore: number;
+  worstScore: number;
+}
+
 export function useHybridSession() {
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<SessionData[]>([]);
+  const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getStorageKey = useCallback(() => {
@@ -48,8 +56,8 @@ export function useHybridSession() {
 
   // Save session
   const saveSession = useCallback(
-    async (session: Omit<SessionData, 'id' | 'completedAt'>) => {
-      const newSession: SessionData = {
+    async (session: Omit<SessionRecord, 'id' | 'completedAt'>) => {
+      const newSession: SessionRecord = {
         ...session,
         id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         completedAt: new Date().toISOString(),
@@ -93,7 +101,7 @@ export function useHybridSession() {
   );
 
   // Get stats
-  const getStats = useCallback(() => {
+  const getStats = useCallback((): ProgressStats => {
     if (sessions.length === 0) {
       return {
         totalSessions: 0,
@@ -132,10 +140,10 @@ export function useHybridSession() {
         const userSessions = existing ? JSON.parse(existing) : [];
 
         // Merge guest sessions (avoiding duplicates)
-        const guestIds = new Set(guest.map((s: SessionData) => s.id));
+        const guestIds = new Set(guest.map((s: SessionRecord) => s.id));
         const merged = [
           ...guest,
-          ...userSessions.filter((s: SessionData) => !guestIds.has(s.id)),
+          ...userSessions.filter((s: SessionRecord) => !guestIds.has(s.id)),
         ];
 
         localStorage.setItem(userKey, JSON.stringify(merged));
