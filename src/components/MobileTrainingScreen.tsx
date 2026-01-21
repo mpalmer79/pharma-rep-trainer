@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, TouchEvent } from 'react';
-import { Drug } from '@/types';
+import { useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Persona } from '@/types';
+import { Drug } from '@/types';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,30 +23,51 @@ interface MobileTrainingScreenProps {
   formatTime: (seconds: number) => string;
 }
 
-// Haptic feedback utility
-const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'warning' | 'error') => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    const patterns: Record<string, number | number[]> = {
-      light: 10,
-      medium: 25,
-      heavy: 50,
-      warning: [50, 50, 50],
-      error: [100, 30, 100, 30, 100],
-    };
-    navigator.vibrate(patterns[type]);
-  }
+const getPersonaImage = (personaId: string) => {
+  const imageMap: Record<string, string> = {
+    rush: '1559839734-2b71ea197ec2',
+    skeptic: '1612349317150-e413f6a5b16d',
+    loyalist: '1594824476967-48c8b964273f',
+    gatekeeper: '1573496359142-b8d87734a5a2',
+    curious: '1537368910025-700350fe46c7',
+  };
+  return `https://images.unsplash.com/photo-${
+    imageMap[personaId] || '1537368910025-700350fe46c7'
+  }?w=100&h=100&fit=crop&crop=face`;
 };
 
-// Get persona image URL
-const getPersonaImage = (personaId: string): string => {
-  const imageMap: Record<string, string> = {
-    'rush': '1559839734-2b71ea197ec2',
-    'skeptic': '1612349317150-e413f6a5b16d',
-    'loyalist': '1594824476967-48c8b964273f',
-    'gatekeeper': '1573496359142-b8d87734a5a2',
-    'curious': '1537368910025-700350fe46c7',
-  };
-  return `https://images.unsplash.com/photo-${imageMap[personaId] || imageMap['curious']}?w=100&h=100&fit=crop&crop=face`;
+// Typing Indicator Component
+const TypingIndicator = ({ personaName }: { personaName: string }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="flex items-start gap-3 mb-4"
+    >
+      <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0" />
+      <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-gray-500 mr-2">{personaName} is typing</span>
+          <motion.span
+            className="w-2 h-2 bg-gray-400 rounded-full"
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+          />
+          <motion.span
+            className="w-2 h-2 bg-gray-400 rounded-full"
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+          />
+          <motion.span
+            className="w-2 h-2 bg-gray-400 rounded-full"
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
 export default function MobileTrainingScreen({
@@ -61,324 +83,156 @@ export default function MobileTrainingScreen({
   formatTime,
 }: MobileTrainingScreenProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Swipe gesture state
-  const [swipeDistance, setSwipeDistance] = useState(0);
-  const [isSwipeActive, setIsSwipeActive] = useState(false);
-  const [showSwipeHint, setShowSwipeHint] = useState(true);
-  const touchStartY = useRef(0);
-  const touchStartTime = useRef(0);
-  
-  // Timer warning state
-  const [hasWarned30, setHasWarned30] = useState(false);
-  const [hasWarned10, setHasWarned10] = useState(false);
-  const [timerPulse, setTimerPulse] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Scroll to bottom on new messages
+  // Auto-scroll to bottom when messages change or when loading
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]);
 
-  // Hide swipe hint after 5 seconds
+  // Auto-resize textarea
   useEffect(() => {
-    const timer = setTimeout(() => setShowSwipeHint(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
+    }
+  }, [input]);
 
-  // Haptic feedback on timer warnings
-  useEffect(() => {
-    if (timeRemaining === 30 && !hasWarned30) {
-      triggerHaptic('warning');
-      setHasWarned30(true);
-      setTimerPulse(true);
-      setTimeout(() => setTimerPulse(false), 1000);
-    }
-    if (timeRemaining === 10 && !hasWarned10) {
-      triggerHaptic('error');
-      setHasWarned10(true);
-    }
-    if (timeRemaining <= 10 && timeRemaining > 0) {
-      triggerHaptic('light');
-    }
-  }, [timeRemaining, hasWarned30, hasWarned10]);
-
-  // Swipe gesture handlers
-  const handleTouchStart = useCallback((e: TouchEvent<HTMLDivElement>) => {
-    // Only track swipe if at top of chat
-    if (chatContainerRef.current && chatContainerRef.current.scrollTop <= 5) {
-      touchStartY.current = e.touches[0].clientY;
-      touchStartTime.current = Date.now();
-      setIsSwipeActive(true);
-    }
-  }, []);
-
-  const handleTouchMove = useCallback((e: TouchEvent<HTMLDivElement>) => {
-    if (!isSwipeActive) return;
-    
-    const currentY = e.touches[0].clientY;
-    const distance = currentY - touchStartY.current;
-    
-    // Only track downward swipes
-    if (distance > 0) {
-      setSwipeDistance(Math.min(distance, 150));
-      
-      // Haptic feedback at threshold
-      if (distance >= 100 && swipeDistance < 100) {
-        triggerHaptic('medium');
-      }
-    }
-  }, [isSwipeActive, swipeDistance]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (swipeDistance >= 100) {
-      // Trigger end session
-      triggerHaptic('heavy');
-      onEndTraining();
-    }
-    
-    setSwipeDistance(0);
-    setIsSwipeActive(false);
-  }, [swipeDistance, onEndTraining]);
-
-  // Handle send with haptic
-  const handleSend = useCallback(() => {
-    if (input.trim() && !isLoading) {
-      triggerHaptic('light');
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       onSendMessage();
     }
-  }, [input, isLoading, onSendMessage]);
+  };
 
-  // Calculate swipe indicator opacity
-  const swipeOpacity = Math.min(swipeDistance / 100, 1);
-  const swipeScale = 0.8 + (swipeOpacity * 0.2);
+  const timerColor =
+    timeRemaining === -1
+      ? 'text-blue-600'
+      : timeRemaining <= 30
+      ? 'text-red-600'
+      : timeRemaining <= 60
+      ? 'text-amber-600'
+      : 'text-[#1B4D7A]';
+
+  const timerBg =
+    timeRemaining === -1
+      ? 'bg-blue-50'
+      : timeRemaining <= 30
+      ? 'bg-red-50'
+      : timeRemaining <= 60
+      ? 'bg-amber-50'
+      : 'bg-gray-100';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Swipe-to-end indicator */}
-      <div 
-        className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center transition-all duration-200 pointer-events-none"
-        style={{
-          height: `${Math.max(swipeDistance, 0)}px`,
-          opacity: swipeOpacity,
-          background: `linear-gradient(to bottom, rgba(220, 38, 38, ${swipeOpacity * 0.9}), transparent)`,
-        }}
-      >
-        <div 
-          className="flex flex-col items-center text-white transition-transform"
-          style={{ transform: `scale(${swipeScale})` }}
-        >
-          <svg 
-            className="w-8 h-8 mb-1" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M19 14l-7 7m0 0l-7-7m7 7V3" 
-            />
-          </svg>
-          <span className="text-sm font-semibold">
-            {swipeDistance >= 100 ? 'Release to End' : 'Pull to End Session'}
-          </span>
-        </div>
-      </div>
-
-      {/* Header - Larger touch targets */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm safe-area-top">
-        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#1B4D7A] to-[#2D6A9F] flex items-center justify-center">
-              <span className="text-white font-bold text-lg">R</span>
-            </div>
-            <div>
-              <h1 className="font-bold text-[#1B4D7A] text-base sm:text-lg">RepIQ</h1>
-              <p className="text-xs text-gray-500">Training Session</p>
-            </div>
-          </div>
-          
-          {/* Timer - Larger, more visible */}
-          <div 
-            className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-mono text-xl sm:text-2xl font-bold transition-all ${
-              timeRemaining <= 10 
-                ? 'bg-red-500 text-white animate-pulse' 
-                : timeRemaining <= 30 
-                  ? 'bg-red-100 text-red-600' 
-                  : 'bg-gray-100 text-gray-700'
-            } ${timerPulse ? 'scale-110' : ''}`}
-          >
-            {timeRemaining <= 30 && (
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            {formatTime(timeRemaining)}
+    <div className="fixed inset-0 bg-gray-50 flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between safe-top">
+        <div className="flex items-center gap-3">
+          <img
+            src={getPersonaImage(currentPersona.id)}
+            alt={currentPersona.name}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div>
+            <h2 className="font-semibold text-[#1B4D7A] text-sm">{currentPersona.name}</h2>
+            <p className="text-xs text-gray-500">{currentDrug.name}</p>
           </div>
         </div>
-      </header>
-
-      {/* Swipe hint banner */}
-      {showSwipeHint && (
-        <div className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-center gap-2 text-blue-700 text-sm animate-pulse sm:hidden">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-          <span>Pull down from top to end session</span>
-        </div>
-      )}
-
-      {/* Main content area */}
-      <div 
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto overscroll-contain"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-          {/* Persona card - More compact on mobile */}
-          <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 flex items-center gap-3 sm:gap-4 shadow-sm">
-            <img 
-              src={getPersonaImage(currentPersona.id)}
-              alt={currentPersona.name}
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-[#1B4D7A] text-sm sm:text-base truncate">
-                {currentPersona.name}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">{currentPersona.title}</p>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-xs text-gray-400">Product</p>
-              <p className="font-medium text-[#E67E22] text-sm sm:text-base">{currentDrug.name}</p>
-            </div>
-          </div>
-
-          {/* Difficulty indicator */}
-          <div className="flex items-center justify-center gap-2 mb-4 sm:hidden">
-            <span className="text-xs text-gray-500">Difficulty:</span>
-            <div className="flex gap-1">
-              {['easy', 'medium', 'hard'].map((level, i) => (
-                <div
-                  key={level}
-                  className={`w-2 h-2 rounded-full ${
-                    (currentPersona.difficulty === 'easy' && i === 0) ||
-                    (currentPersona.difficulty === 'medium' && i <= 1) ||
-                    (currentPersona.difficulty === 'hard')
-                      ? currentPersona.difficulty === 'easy' 
-                        ? 'bg-green-500' 
-                        : currentPersona.difficulty === 'medium' 
-                          ? 'bg-amber-500' 
-                          : 'bg-red-500'
-                      : 'bg-gray-200'
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs font-medium text-gray-600 capitalize">
-              {currentPersona.difficulty}
+        <div className="flex items-center gap-3">
+          <div className={`px-3 py-1.5 rounded-full ${timerBg}`}>
+            <span className={`font-mono font-bold ${timerColor}`}>
+              {formatTime(timeRemaining)}
             </span>
           </div>
-
-          {/* Messages - Larger touch targets */}
-          <div className="space-y-3 sm:space-y-4 min-h-[300px] sm:min-h-[400px]">
-            {messages.map((msg, i) => (
-              <div 
-                key={i} 
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-[85%] sm:max-w-[80%] p-3.5 sm:p-4 rounded-2xl text-[15px] sm:text-base leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-[#1B4D7A] text-white rounded-tr-md'
-                      : 'bg-white border border-gray-200 text-gray-700 rounded-tl-md shadow-sm'
-                  }`}
-                >
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-            
-            {/* Typing indicator */}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md p-4 shadow-sm">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+          <button
+            onClick={onEndTraining}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            End
+          </button>
         </div>
       </div>
 
-      {/* Input area - Fixed at bottom, larger touch targets */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 safe-area-bottom">
-        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          {/* Character count hint */}
-          {input.length > 0 && (
-            <div className="flex justify-end mb-1 px-1">
-              <span className={`text-xs ${input.length > 300 ? 'text-amber-500' : 'text-gray-400'}`}>
-                {input.length} characters
-                {input.length > 300 && ' (consider being more concise)'}
-              </span>
-            </div>
-          )}
-          
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-1.5 sm:p-2 flex gap-2 items-end">
-            <input
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <AnimatePresence mode="popLayout">
+          {messages.map((message, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className={`flex items-start gap-3 mb-4 ${
+                message.role === 'user' ? 'flex-row-reverse' : ''
+              }`}
+            >
+              {message.role === 'assistant' ? (
+                <img
+                  src={getPersonaImage(currentPersona.id)}
+                  alt={currentPersona.name}
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#1B4D7A] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs font-bold">You</span>
+                </div>
+              )}
+              <div
+                className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                  message.role === 'user'
+                    ? 'bg-[#1B4D7A] text-white rounded-tr-sm'
+                    : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
+                }`}
+              >
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Typing Indicator */}
+        <AnimatePresence>
+          {isLoading && <TypingIndicator personaName={currentPersona.name.split(' ')[0]} />}
+        </AnimatePresence>
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="bg-white border-t border-gray-200 px-4 py-3 safe-bottom">
+        <div className="flex items-end gap-3">
+          <div className="flex-1 relative">
+            <textarea
               ref={inputRef}
-              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Type your response..."
-              className="flex-1 px-3 sm:px-4 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4D7A]/20 focus:border-[#1B4D7A] text-base"
-              style={{ fontSize: '16px' }} // Prevents iOS zoom
-              autoComplete="off"
-              autoCorrect="on"
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message..."
+              disabled={isLoading}
+              rows={1}
+              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4D7A] focus:border-transparent resize-none text-sm disabled:bg-gray-50 disabled:text-gray-400"
+              style={{ maxHeight: '120px' }}
             />
-            <button
-              onClick={handleSend}
-              disabled={isLoading || !input.trim()}
-              className="flex-shrink-0 w-14 h-12 sm:w-auto sm:h-auto sm:px-6 sm:py-3.5 bg-[#E67E22] hover:bg-[#D35400] active:bg-[#C44D00] text-white font-semibold rounded-lg disabled:opacity-50 disabled:active:bg-[#E67E22] transition-colors flex items-center justify-center touch-manipulation"
-              aria-label="Send message"
-            >
-              {/* Send icon for mobile, text for desktop */}
-              <svg className="w-6 h-6 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-              <span className="hidden sm:inline">Send</span>
-            </button>
           </div>
-
-          {/* End session button - Larger on mobile */}
-          <button
-            onClick={() => {
-              triggerHaptic('medium');
-              onEndTraining();
-            }}
-            className="w-full mt-3 py-3.5 sm:py-3 border-2 border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation text-base"
+          <motion.button
+            onClick={onSendMessage}
+            disabled={isLoading || !input.trim()}
+            className="p-3 bg-[#E67E22] hover:bg-[#D35400] text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            whileTap={{ scale: 0.95 }}
           >
-            End Session Early
-          </button>
-          
-          {/* Quick tips - Mobile only */}
-          <div className="mt-3 sm:hidden">
-            <p className="text-xs text-gray-400 text-center">
-              💡 Tip: Keep responses concise for time-pressed physicians
-            </p>
-          </div>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
+            </svg>
+          </motion.button>
         </div>
+        <p className="text-xs text-gray-400 mt-2 text-center">
+          Press Enter to send • Shift+Enter for new line
+        </p>
       </div>
     </div>
   );
