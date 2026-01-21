@@ -7,103 +7,84 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const { updatePassword, isAuthenticated, isLoading: authLoading } = useAuth();
-  
+  const { updatePassword, user, loading } = useAuth();
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  // Check if user is authenticated (they should be after clicking the reset link)
-  useEffect(() => {
-    // Give time for auth state to be determined
-    const timer = setTimeout(() => {
-      if (!authLoading && !isAuthenticated) {
-        router.push('/auth/forgot-password');
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [authLoading, isAuthenticated, router]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
+    setError(null);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const { error } = await updatePassword(password);
-
-    if (error) {
-      setError(error.message);
+    try {
+      const { error } = await updatePassword(password);
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2000);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
       setIsSubmitting(false);
-    } else {
-      setSuccess(true);
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
     }
   };
 
-  if (authLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D7A]"></div>
+      <div className="min-h-screen bg-gradient-to-br from-[#1B4D7A] to-[#0D2B4A] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1B4D7A] via-[#2D6A9F] to-[#1B4D7A] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-[#1B4D7A] to-[#0D2B4A] flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">R</span>
-            </div>
-            <span className="text-2xl font-bold text-white">RepIQ</span>
+          <Link href="/" className="text-3xl font-bold text-white">
+            RepIQ
           </Link>
-          <h2 className="mt-6 text-3xl font-bold text-white">Set new password</h2>
-          <p className="mt-2 text-white/70">Enter your new password below</p>
+          <p className="text-white/70 mt-2">Set your new password</p>
         </div>
 
-        {/* Card */}
+        {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           {success ? (
-            <div className="text-center py-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+            <div className="text-center">
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+                Password updated successfully! Redirecting...
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Password updated!</h3>
-              <p className="text-gray-600 mb-4">
-                Your password has been changed successfully. Redirecting to dashboard...
-              </p>
             </div>
           ) : (
             <>
-              {/* Error Message */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 text-sm">{error}</p>
-                </div>
-              )}
-
               <form onSubmit={handleSubmit}>
-                <div className="mb-4">
+                <div className="mb-6">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                     New password
                   </label>
