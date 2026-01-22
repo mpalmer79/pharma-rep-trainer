@@ -61,7 +61,7 @@ This enables objective progress measurement and early identification of coaching
 
 Managers receive actionable insight without reviewing raw transcripts.
 
-Features include team-level pattern rollups, at-risk rep detection, per-rep drill-down views, risk classification, coaching focus recommendations, and adaptive journey reassignment visibility.
+Features include team-level pattern rollups, at-risk rep detection, drill-down by sales rep views, risk classification, coaching focus recommendations, and adaptive journey reassignment visibility.
 
 ---
 
