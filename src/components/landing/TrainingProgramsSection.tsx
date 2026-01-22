@@ -1,38 +1,44 @@
-
 'use client';
 
+import Link from 'next/link';
 import { AnimatedSection } from '@/components/ui/AnimatedSection';
 
 const trainingPrograms = [
   {
     title: 'Clinical Data Presentation',
     description: 'Master the art of presenting Phase III trial data, survival rates, and comparative effectiveness studies to evidence-minded physicians.',
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&q=80',
+    link: null
   },
   {
     title: 'Objection Handling',
     description: 'Practice responding to common physician objections about formulary status, side effect profiles, and cost considerations.',
-    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&q=80',
+    link: '/training-library'
   },
   {
     title: 'Time-Constrained Conversations',
     description: 'Learn to deliver your key messages effectively in 90-second hallway conversations with busy practitioners.',
-    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&q=80',
+    link: null
   },
   {
     title: 'Gatekeeper Navigation',
     description: 'Develop strategies for building rapport with office staff and securing meaningful time with prescribers.',
-    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80',
+    link: null
   },
   {
     title: 'Academic Detailing',
     description: 'Prepare for conversations with KOLs and academic physicians who demand rigorous scientific discussion.',
-    image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=600&q=80',
+    link: null
   },
   {
     title: 'Competitive Positioning',
     description: 'Practice differentiating your products against established competitors with specific clinical advantages.',
-    image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80',
+    link: null
   }
 ];
 
@@ -57,20 +63,39 @@ export const TrainingProgramsSection = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {trainingPrograms.map((program, i) => (
             <AnimatedSection key={program.title} delay={i * 100}>
-              <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow group">
-                <div className="relative h-48 overflow-hidden">
-                  <img 
-                    src={program.image}
-                    alt={program.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1B4D7A]/60 to-transparent"></div>
+              {program.link ? (
+                <Link href={program.link} className="block">
+                  <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow group cursor-pointer">
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={program.image}
+                        alt={program.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1B4D7A]/60 to-transparent"></div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-[#1B4D7A] mb-3 group-hover:text-[#E67E22] transition-colors">{program.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{program.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow group">
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={program.image}
+                      alt={program.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1B4D7A]/60 to-transparent"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-[#1B4D7A] mb-3">{program.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{program.description}</p>
+                  </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-[#1B4D7A] mb-3">{program.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{program.description}</p>
-                </div>
-              </div>
+              )}
             </AnimatedSection>
           ))}
         </div>
