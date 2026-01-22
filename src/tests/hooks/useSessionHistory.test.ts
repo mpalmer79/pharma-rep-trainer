@@ -4,7 +4,7 @@ import { TrainingSession } from '@/types';
 import { createMockSession, createMockFeedback, mockLocalStorage } from '../utils/test-utils';
 
 describe('useSessionHistory', () => {
-  const STORAGE_KEY = 'pharma_training_history';
+  const STORAGE_KEY = 'repiq_session_history';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -26,7 +26,7 @@ describe('useSessionHistory', () => {
       ];
 
       mockLocalStorage({
-        [STORAGE_KEY]: storedSessions,
+        [STORAGE_KEY]: { sessions: storedSessions, lastUpdated: new Date().toISOString() },
       });
 
       const { result } = renderHook(() => useSessionHistory());
@@ -58,6 +58,7 @@ describe('useSessionHistory', () => {
             { role: 'assistant', content: 'Hi' },
           ],
           createMockFeedback(75),
+          new Date(),
           180
         );
       });
@@ -76,6 +77,7 @@ describe('useSessionHistory', () => {
           'rush',
           [],
           createMockFeedback(80),
+          new Date(),
           120
         );
       });
@@ -95,11 +97,11 @@ describe('useSessionHistory', () => {
       const { result } = renderHook(() => useSessionHistory());
 
       act(() => {
-        result.current.saveSession('drug1', 'persona1', [], createMockFeedback(70), 100);
+        result.current.saveSession('drug1', 'persona1', [], createMockFeedback(70), new Date(), 100);
       });
 
       act(() => {
-        result.current.saveSession('drug2', 'persona2', [], createMockFeedback(80), 100);
+        result.current.saveSession('drug2', 'persona2', [], createMockFeedback(80), new Date(), 100);
       });
 
       expect(result.current.sessions[0].id).not.toBe(result.current.sessions[1].id);
@@ -115,7 +117,7 @@ describe('useSessionHistory', () => {
       ];
 
       mockLocalStorage({
-        [STORAGE_KEY]: storedSessions,
+        [STORAGE_KEY]: { sessions: storedSessions, lastUpdated: new Date().toISOString() },
       });
 
       const { result } = renderHook(() => useSessionHistory());
@@ -138,7 +140,7 @@ describe('useSessionHistory', () => {
       ];
 
       mockLocalStorage({
-        [STORAGE_KEY]: storedSessions,
+        [STORAGE_KEY]: { sessions: storedSessions, lastUpdated: new Date().toISOString() },
       });
 
       const { result } = renderHook(() => useSessionHistory());
@@ -169,9 +171,8 @@ describe('useSessionHistory', () => {
 
       expect(stats.totalSessions).toBe(0);
       expect(stats.averageScore).toBe(0);
-      expect(stats.totalTime).toBe(0);
-      expect(stats.bestScore).toBe(0);
-      expect(stats.worstScore).toBe(0);
+      expect(stats.highestScore).toBe(0);
+      expect(stats.lowestScore).toBe(0);
     });
 
     it('should calculate correct statistics', () => {
@@ -194,7 +195,7 @@ describe('useSessionHistory', () => {
       ];
 
       mockLocalStorage({
-        [STORAGE_KEY]: storedSessions,
+        [STORAGE_KEY]: { sessions: storedSessions, lastUpdated: new Date().toISOString() },
       });
 
       const { result } = renderHook(() => useSessionHistory());
@@ -203,9 +204,8 @@ describe('useSessionHistory', () => {
 
       expect(stats.totalSessions).toBe(3);
       expect(stats.averageScore).toBe(70);
-      expect(stats.totalTime).toBe(370);
-      expect(stats.bestScore).toBe(80);
-      expect(stats.worstScore).toBe(60);
+      expect(stats.highestScore).toBe(80);
+      expect(stats.lowestScore).toBe(60);
     });
   });
 
@@ -214,11 +214,11 @@ describe('useSessionHistory', () => {
       const { result } = renderHook(() => useSessionHistory());
 
       act(() => {
-        result.current.saveSession('drug1', 'persona1', [], createMockFeedback(70), 100);
+        result.current.saveSession('drug1', 'persona1', [], createMockFeedback(70), new Date(), 100);
       });
 
       act(() => {
-        result.current.saveSession('drug2', 'persona2', [], createMockFeedback(80), 100);
+        result.current.saveSession('drug2', 'persona2', [], createMockFeedback(80), new Date(), 100);
       });
 
       expect(result.current.sessions[0].drugId).toBe('drug2');
