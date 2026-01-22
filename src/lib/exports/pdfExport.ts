@@ -1,9 +1,13 @@
 import jsPDF from "jspdf";
 import { CoachingSummary } from "@/lib/exports/coachingSummary";
 
+/**
+ * Generate a coaching summary PDF and return it as a Blob.
+ * This is used for email attachments, storage, and exports.
+ */
 export function exportCoachingSummaryToPDF(
   summary: CoachingSummary
-): void {
+): Blob {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -44,7 +48,7 @@ export function exportCoachingSummaryToPDF(
     summary.highlights.forEach((h) => addLine(`- ${h}`));
   }
 
-  // Concerns
+  // Areas for Improvement
   addSectionTitle("Areas for Improvement");
   if (summary.concerns.length === 0) {
     addLine("No concerns flagged.");
@@ -52,7 +56,7 @@ export function exportCoachingSummaryToPDF(
     summary.concerns.forEach((c) => addLine(`- ${c}`));
   }
 
-  // Adjustments
+  // Training Adjustments
   addSectionTitle("Training Adjustments");
   if (summary.adjustments.length === 0) {
     addLine("No journey adjustments required.");
@@ -60,12 +64,10 @@ export function exportCoachingSummaryToPDF(
     summary.adjustments.forEach((a) => addLine(`- ${a}`));
   }
 
-  // Recommendation
+  // Recommended Next Action
   addSectionTitle("Recommended Next Action");
   addLine(summary.recommendedNextAction);
 
-  // Save
-  doc.save(
-    `coaching-summary-${summary.metadata.userId}-${summary.metadata.sessionId}.pdf`
-  );
+  // IMPORTANT: return the PDF as a Blob (do NOT download)
+  return doc.output("blob");
 }
