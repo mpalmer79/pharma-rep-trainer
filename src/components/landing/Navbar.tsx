@@ -39,7 +39,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-6">
-            <a href="#platform" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">Platform</a>
+            <Link href="/testimonials" className="text-[#E67E22] hover:text-[#D35400] font-semibold transition-colors text-sm">Testimonials</Link>
             <a href="#training" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">Training</a>
             <a href="#roles" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">Solutions</a>
             <a href="#about" className="text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium transition-colors text-sm">About</a>
@@ -114,7 +114,7 @@ export const Navbar = ({ historyLoaded, sessionsCount, onProgressClick, onManage
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-700 shadow-lg">
           <div className="px-4 py-6 space-y-4">
-            <a href="#platform" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">Platform</a>
+            <Link href="/testimonials" onClick={handleNavClick} className="block py-2 text-[#E67E22] hover:text-[#D35400] font-semibold">Testimonials</Link>
             <a href="#training" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">Training</a>
             <a href="#roles" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">Solutions</a>
             <a href="#about" onClick={handleNavClick} className="block py-2 text-gray-700 dark:text-gray-300 hover:text-[#E67E22] font-medium">About</a>
