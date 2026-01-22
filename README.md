@@ -182,3 +182,9 @@ It is not affiliated with any pharmaceutical company and does not provide medica
 Actively developed.
 
 Feature-complete for explainable coaching, adaptive training, manager oversight, compliance exports, and email and CRM integration.
+
+---
+
+<a href="https://www.linkedin.com/in/mpalmer1234/" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin&logoColor=white" alt="LinkedIn Profile"/>
+</a>
