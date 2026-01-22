@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import {
   FeedbackExplanation,
   FEEDBACK_LABELS
-} from "@/lib/feedback/explanations";
+} from "@/lib/feedback/explanation";
 
 interface ExplainableFeedbackProps {
   feedback: FeedbackExplanation[];
