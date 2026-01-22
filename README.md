@@ -91,7 +91,7 @@ Coaching summaries
 Audit reports  
 PDF exports  
 Email delivery  
-CRM webhooks  
+Various CRM webhooks  
 
 ---
 
