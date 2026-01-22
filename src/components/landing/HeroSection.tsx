@@ -12,7 +12,7 @@ interface QuickPracticeResult {
 }
 
 interface HeroSectionProps {
-  onQuickPractice?: () => QuickPracticeResult;
+  onQuickPractice?: () => QuickPracticeResult | null;
   onStartQuickPractice?: (drugId: string, personaId: string) => void;
 }
 
@@ -29,6 +29,13 @@ export const HeroSection = ({ onQuickPractice, onStartQuickPractice }: HeroSecti
     }
 
     const selection = onQuickPractice();
+    if (!selection) {
+      // No available selection, scroll to simulator
+      const simulator = document.getElementById('simulator');
+      if (simulator) simulator.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    
     setPreviewData(selection);
     setShowPreview(true);
 
