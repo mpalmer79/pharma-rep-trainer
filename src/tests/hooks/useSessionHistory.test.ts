@@ -90,7 +90,7 @@ describe('useSessionHistory', () => {
       const savedData = JSON.parse(
         (window.localStorage.setItem as jest.Mock).mock.calls[0][1]
       );
-      expect(savedData[0].drugId).toBe('neurozen');
+      expect(savedData.sessions[0].drugId).toBe('neurozen');
     });
 
     it('should generate unique session IDs', () => {
