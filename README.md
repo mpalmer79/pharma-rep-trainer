@@ -166,6 +166,10 @@ AI deployment and enablement demonstrations
 
 This project is structured to support commercialization through enterprise licensing, per-rep SaaS pricing, compliance reporting add-ons, CRM integration packages, manager analytics tiers, and white-label deployments.
 
+<a href="https://www.linkedin.com/in/mpalmer1234/" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin&logoColor=white" alt="LinkedIn Profile"/>
+</a>
+
 ---
 
 ## Disclaimer
@@ -183,6 +187,3 @@ Feature-complete for explainable coaching, adaptive training, manager oversight,
 
 ---
 
-<a href="https://www.linkedin.com/in/mpalmer1234/" target="_blank" rel="noopener noreferrer">
-  <img src="https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin&logoColor=white" alt="LinkedIn Profile"/>
-</a>
