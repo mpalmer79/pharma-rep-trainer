@@ -26,6 +26,7 @@ PharmaRep Trainer is an AI-powered training simulator that helps pharmaceutical 
 - Traditional role-play with managers lacks realism and scalability
 - Compliance training is often disconnected from real-world scenarios
 - Managers lack visibility into rep training progress and skill gaps
+- RedIQ revolutionizes your onboarding process!
 
 ### The Solution
 
