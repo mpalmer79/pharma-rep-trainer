@@ -7,5 +7,6 @@ export { StatsBanner } from './StatsBanner';
 export { RolesSection } from './RolesSection';
 export { AboutSection } from './AboutSection';
 export { SimulatorSection } from './SimulatorSection';
+export { GameJourneySection } from './GameJourneySection';
 export { CTASection } from './CTASection';
 export { Footer } from './Footer';
