@@ -1,7 +1,7 @@
-# PharmaRep Trainer  
+# PharmaRep Trainer (RepIQ)
 **Explainable, Adaptive AI Training for Regulated Sales Teams**
 
-<a href="https://www.linkedin.com/in/mpalmer1234/" target="_blank" rel="noopener noreferrer">
+<a href="https://www.linkedin.com/in/michael-palmer-qa/" target="_blank" rel="noopener noreferrer">
   <img src="https://img.shields.io/badge/LinkedIn-Michael%20Palmer-blue?logo=linkedin&logoColor=white" alt="LinkedIn Profile"/>
 </a>
 
@@ -12,6 +12,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3FCF8E)
 ![AI Powered](https://img.shields.io/badge/AI-Explainable%20Coaching-orange)
 ![Compliance Ready](https://img.shields.io/badge/Compliance-Audit%20Ready-success)
+![Gamified](https://img.shields.io/badge/🎮-Gamified%20Training-purple)
 
 🔗 **Live Demo** | 📚 **Training Library**
 
@@ -23,7 +24,68 @@ PharmaRep Trainer is an AI-powered sales training and coaching platform designed
 
 Unlike traditional role-play simulators, PharmaRep Trainer delivers explainable coaching intelligence, adaptive training journeys, and compliance-ready audit artifacts that support onboarding, continuous improvement, and managerial oversight.
 
+**New in v2.0:** A fully gamified training experience where every response is scored in real-time, time bonuses reward excellence, and reps progress through challenge tiers toward the ultimate goal — winning long-term pharmaceutical partnerships.
+
 This repository demonstrates a production-grade architecture for AI-assisted training systems where trust, transparency, and accountability are required.
+
+---
+
+## 🎮 Can You Beat the Game?
+
+PharmaRep Trainer transforms sales training into an engaging challenge that motivates continuous improvement.
+
+### The Challenge
+
+Every conversation is a test. The AI evaluates your responses in real-time across five dimensions:
+
+| Dimension | What It Measures |
+|-----------|------------------|
+| **Attention Grabbing** | Did you capture the physician's interest? |
+| **Sales Quality** | Professional technique, consultative approach |
+| **Accuracy** | Correct product and clinical information |
+| **Rapport** | Building relationship with the persona |
+| **Overall Impression** | Combined effectiveness |
+
+### Dynamic Timer System
+
+Your performance directly impacts your available time:
+
+| Score | Timer Adjustment | Meaning |
+|-------|------------------|---------|
+| 8-10 | **+15 seconds** | Excellent — you've earned more time |
+| 6-7 | **+8 seconds** | Good — positive impression |
+| 5 | 0 seconds | Average — neutral |
+| 3-4 | **-5 seconds** | Poor — losing their interest |
+| 1-2 | **-10 seconds** | Terrible — wasting their time |
+
+Great responses buy you time. Poor responses cost you. Every second counts.
+
+### The Journey: Newcomer to Champion
+
+Progress through four challenge tiers as you prove your skills:
+
+**Level 1: The Newcomer**
+Start with friendly personas who give you time to make your pitch. Focus on building rapport and presenting patient benefits clearly.
+
+**Level 2: The Challenger**  
+Face skeptical physicians who demand data and evidence. Know your clinical data cold.
+
+**Level 3: The Expert**  
+Navigate gatekeepers and time-pressured situations. This is where bonus time mechanics matter most.
+
+**Level 4: The Champion**  
+Master all personas. Win long-term partnerships. Establish trusted relationships between your pharmaceutical company and healthcare providers.
+
+### Unlock System
+
+- Start with easier personas unlocked
+- Demonstrate competency to unlock harder challenges
+- Track progress across six core skill dimensions
+- Advance from Beginner → Intermediate → Advanced → Expert tier
+
+### 🏆 The Ultimate Goal
+
+Your mission isn't survival — it's building lasting partnerships. Master every persona, reach Expert tier, score 85%+ consistently, and prove you have what it takes to win the contract.
 
 ---
 
@@ -34,6 +96,18 @@ This repository demonstrates a production-grade architecture for AI-assisted tra
 Every coaching outcome is deterministic, evidence-backed, human-readable, and auditable.
 
 The system provides transcript-linked feedback tied to specific utterances, clear reasoning for each coaching recommendation, defined skill dimensions, and zero black-box decision making.
+
+---
+
+### Real-Time Response Assessment
+
+**New:** The AI evaluates each user response in parallel with generating the persona's reply:
+
+- Five-dimension scoring (1-10 scale)
+- Immediate timer adjustment based on performance
+- Visual feedback showing time earned or lost
+- Brief coaching tips after each exchange
+- No added latency — assessment runs in parallel
 
 ---
 
@@ -78,32 +152,48 @@ All outputs are deterministic and reviewable.
 ## System Architecture (High Level)
 
 Training Flow:
-AI-driven role-play session  
-Transcript capture  
-Explainable feedback generation  
-Session comparison  
-Cross-session pattern detection  
-Journey reassignment  
-Manager insights and exports  
+```
+AI-driven role-play session
+    ↓
+Real-time response scoring (5 dimensions)
+    ↓
+Dynamic timer adjustment
+    ↓
+Transcript capture
+    ↓
+Explainable feedback generation
+    ↓
+Session comparison
+    ↓
+Cross-session pattern detection
+    ↓
+Persona unlock evaluation
+    ↓
+Journey reassignment
+    ↓
+Manager insights and exports
+```
 
 Enterprise Outputs:
-Coaching summaries  
-Audit reports  
-PDF exports  
-Email delivery  
-Various CRM webhooks  
+- Coaching summaries  
+- Audit reports  
+- PDF exports  
+- Email delivery  
+- CRM webhooks  
 
 ---
 
 ## Technology Stack
 
-Frontend: React, Next.js (App Router), TypeScript  
-Styling and Motion: Tailwind CSS, Framer Motion  
-AI Integration: LLM-driven role-play with deterministic orchestration  
-Auth and Data: Supabase (Auth and Database)  
-Exports: jsPDF  
-Integrations: Email delivery and CRM webhooks  
-Architecture: Modular, provider-agnostic, audit-friendly  
+| Layer | Technologies |
+|-------|--------------|
+| Frontend | React, Next.js (App Router), TypeScript |
+| Styling & Motion | Tailwind CSS, Framer Motion |
+| AI Integration | Claude API with parallel scoring, deterministic orchestration |
+| Auth & Data | Supabase (Auth and Database) |
+| Exports | jsPDF |
+| Integrations | Email delivery, CRM webhooks |
+| Architecture | Modular, provider-agnostic, audit-friendly |
 
 ---
 
@@ -111,62 +201,98 @@ Architecture: Modular, provider-agnostic, audit-friendly
 
 This project is organized to clearly separate UI, domain logic, integrations, and compliance artifacts.
 
+```
 /
-README.md – Project overview and positioning  
-package.json – Dependencies and scripts  
-tsconfig.json – TypeScript configuration  
-next.config.js – Next.js configuration  
-tailwind.config.js – Tailwind CSS configuration  
-postcss.config.js – PostCSS configuration  
-public/ – Static assets  
+├── README.md – Project overview and positioning
+├── package.json – Dependencies and scripts
+├── tsconfig.json – TypeScript configuration
+├── next.config.js – Next.js configuration
+├── tailwind.config.js – Tailwind CSS configuration
+├── postcss.config.js – PostCSS configuration
+├── public/ – Static assets
 
 src/
-app/
-app/api/email/send-coaching-summary/route.ts – Email delivery with PDF attachment  
-app/api/crm/send-coaching-summary/route.ts – CRM webhook integration  
-app/layout.tsx – Root layout  
-app/page.tsx – Entry page  
+├── app/
+│   ├── api/chat/route.ts – AI conversation + real-time scoring
+│   ├── api/score/route.ts – End-of-session scoring
+│   ├── api/email/send-coaching-summary/route.ts – Email delivery
+│   ├── api/crm/send-coaching-summary/route.ts – CRM webhook
+│   ├── layout.tsx – Root layout
+│   └── page.tsx – Entry page with gamification flow
+│
+├── components/
+│   ├── landing/
+│   │   ├── HeroSection.tsx – Hero with challenge teaser
+│   │   ├── GameJourneySection.tsx – 4-level journey visualization
+│   │   ├── StatsBanner.tsx – Gamified challenge stats
+│   │   ├── SimulatorSection.tsx – Training launcher
+│   │   └── CTASection.tsx – "Win the Game" CTA
+│   ├── training/TrainingJourney.tsx – Adaptive journey UI
+│   ├── session/MobileTrainingScreen.tsx – Training UI + timer feedback
+│   ├── session/PatternInsights.tsx – Pattern visualization
+│   ├── manager/ManagerInsights.tsx – Team rollups
+│   ├── manager/UserDrilldown.tsx – Per-rep drill-down
+│   ├── compliance/AuditReportView.tsx – Audit report UI
+│   └── exports/CoachingSummaryView.tsx – Coaching summary preview
+│
+├── hooks/
+│   ├── useProgressionSystem.ts – Unlock and tier logic
+│   ├── useCoachingMode.ts – Real-time coaching hints
+│   └── useSessionHistory.ts – Session persistence
+│
+├── lib/
+│   ├── sessions/patterns.ts – Pattern detection engine
+│   ├── journeys/recommendation.ts – Journey recommendations
+│   ├── journeys/reassignment.ts – Skill-based reassignment
+│   ├── manager/rollups.ts – Manager aggregation logic
+│   ├── compliance/auditReport.ts – Audit report builder
+│   ├── exports/pdfExport.ts – PDF export
+│   └── crm/webhookClient.ts – CRM webhook client
+│
+└── types/
+    └── index.ts – Shared domain types including ResponseAssessment
+```
 
-components/
-components/training/TrainingJourney.tsx – Adaptive training journey UI  
-components/session/MobileSessionReplay.tsx – Mobile session replay  
-components/session/PatternInsights.tsx – Pattern visualization  
-components/manager/ManagerInsights.tsx – Team rollups  
-components/manager/UserDrilldown.tsx – Per-rep drill-down  
-components/compliance/AuditReportView.tsx – Audit report UI  
-components/exports/CoachingSummaryView.tsx – Coaching summary preview  
+---
 
-lib/
-lib/sessions/patterns.ts – Pattern detection engine  
-lib/journeys/recommendation.ts – Journey recommendations  
-lib/journeys/reassignment.ts – Skill-based reassignment  
-lib/manager/rollups.ts – Manager aggregation logic  
-lib/manager/userDrilldown.ts – Drill-down builder  
-lib/compliance/auditReport.ts – Audit report builder  
-lib/exports/coachingSummary.ts – Coaching summary model  
-lib/exports/pdfExport.ts – PDF export (Blob-based)  
-lib/email/emailClient.ts – Email abstraction  
-lib/crm/webhookClient.ts – CRM webhook client  
-lib/haptics.ts – Mobile haptic feedback  
+## Gamification Features Summary
 
-types/ – Shared domain types  
-docs/ – Optional diagrams and assets  
+| Feature | Description |
+|---------|-------------|
+| **Real-Time Scoring** | Every response graded on 5 dimensions (1-10 scale) |
+| **Dynamic Timer** | +15s to -10s adjustments based on performance |
+| **Visual Feedback** | Green/red badges show time earned/lost |
+| **Persona Unlocks** | Master easy personas to unlock harder challenges |
+| **Progression Tiers** | Beginner → Intermediate → Advanced → Expert |
+| **Journey Visualization** | 4-level path from Newcomer to Champion |
+| **Ultimate Goal** | Win long-term pharmaceutical partnerships |
 
 ---
 
 ## Designed For
 
-Pharmaceutical sales organizations  
-Medical device companies  
-Life sciences onboarding teams  
-Compliance-conscious training programs  
-AI deployment and enablement demonstrations  
+- Pharmaceutical sales organizations  
+- Medical device companies  
+- Life sciences onboarding teams  
+- Compliance-conscious training programs  
+- AI deployment and enablement demonstrations  
+- Teams seeking engaging, gamified skill development
 
 ---
 
-This project is structured to support commercialization through enterprise licensing, per-rep SaaS pricing, compliance reporting add-ons, CRM integration packages, manager analytics tiers, and white-label deployments.
+## Commercialization
 
-<a href="https://www.linkedin.com/in/mpalmer1234/" target="_blank" rel="noopener noreferrer">
+This project is structured to support commercialization through:
+
+- Enterprise licensing
+- Per-rep SaaS pricing
+- Compliance reporting add-ons
+- CRM integration packages
+- Manager analytics tiers
+- White-label deployments
+- Gamification feature tiers
+
+<a href="https://www.linkedin.com/in/michael-palmer-qa/" target="_blank" rel="noopener noreferrer">
   <img src="https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin&logoColor=white" alt="LinkedIn Profile"/>
 </a>
 
@@ -181,9 +307,29 @@ It is not affiliated with any pharmaceutical company and does not provide medica
 
 ## Project Status
 
-Actively developed.
+**Actively developed.**
 
-Feature-complete for explainable coaching, adaptive training, manager oversight, compliance exports, and email and CRM integration.
+Feature-complete for:
+- ✅ Explainable coaching
+- ✅ Adaptive training journeys
+- ✅ Manager oversight
+- ✅ Compliance exports
+- ✅ Email and CRM integration
+- ✅ **Gamified training with real-time scoring**
+- ✅ **Dynamic timer system**
+- ✅ **Persona unlock progression**
+- ✅ **Challenge tier advancement**
 
 ---
 
+## Quick Start
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables (see `.env.example`)
+4. Add your Anthropic API key to Vercel environment variables
+5. Deploy to Vercel or run locally: `npm run dev`
+
+**Note:** The gamification features (real-time scoring, dynamic timer) require a valid Anthropic API key. Without one, the system uses intelligent fallback responses with basic scoring.
+
+---
