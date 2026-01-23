@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shuffle, Zap } from 'lucide-react';
+import { Shuffle, Zap, Trophy } from 'lucide-react';
 
 interface QuickPracticeResult {
   drugId: string;
@@ -93,10 +93,26 @@ export const HeroSection = ({ onQuickPractice, onStartQuickPractice }: HeroSecti
             <span className="absolute bottom-0 left-0 w-full h-1.5 bg-[#E67E22]"></span>
           </span>
         </h1>
-        <p className="text-lg sm:text-xl text-gray-200 mb-8 leading-relaxed max-w-2xl mx-auto">
+        <p className="text-lg sm:text-xl text-gray-200 mb-4 leading-relaxed max-w-2xl mx-auto">
           AI-powered roleplay simulations built for New England's pharmaceutical sales teams. 
           Practice with realistic physician personas before your next sales call.
         </p>
+        
+        {/* Gamification Teaser */}
+        <motion.div 
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-8 border border-white/20"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Trophy className="w-4 h-4 text-yellow-400" />
+          <span className="text-sm text-white/90">
+            <strong>Challenge Mode:</strong> Earn time bonuses, unlock personas, win the contract!
+          </span>
+          <a href="#journey" className="text-[#E67E22] hover:text-orange-300 text-sm font-semibold ml-1">
+            Learn how →
+          </a>
+        </motion.div>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
