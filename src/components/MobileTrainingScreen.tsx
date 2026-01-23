@@ -227,7 +227,7 @@ export default function MobileTrainingScreen({
           setTimerAdjustment({ value: adjustmentValue, show: true });
           // Play appropriate sound
           if (adjustmentValue > 0) {
-            playSound('unlock'); // Reuse unlock sound for positive feedback
+            playSound('celebration'); // Positive feedback for bonus time
           }
           // Hide after 2 seconds
           setTimeout(() => {
