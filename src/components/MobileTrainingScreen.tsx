@@ -141,6 +141,10 @@ export default function MobileTrainingScreen({
   const [warning30Played, setWarning30Played] = useState(false);
   const [warning10Played, setWarning10Played] = useState(false);
   const prevTimeRef = useRef(timeRemaining);
+  
+  // Timer adjustment feedback state
+  const [timerAdjustment, setTimerAdjustment] = useState<{ value: number; show: boolean }>({ value: 0, show: false });
+  const lastMessageCountRef = useRef(messages.length);
 
   // Voice input hook
   const {
@@ -207,6 +211,33 @@ export default function MobileTrainingScreen({
 
     prevTimeRef.current = timeRemaining;
   }, [timeRemaining, warning30Played, warning10Played, playSound]);
+
+  // Detect timer adjustments (when time jumps up or down by more than 1 second)
+  useEffect(() => {
+    // Skip unlimited mode and initial render
+    if (timeRemaining === -1 || prevTimeRef.current === timeRemaining) return;
+    
+    // Only check for adjustments when a new message was added (not just countdown)
+    if (messages.length > lastMessageCountRef.current) {
+      const diff = timeRemaining - prevTimeRef.current;
+      // If time increased, or decreased by more than normal countdown
+      if (diff > 0 || diff < -2) {
+        const adjustmentValue = diff > 0 ? diff : diff + 1; // Account for 1 second countdown
+        if (adjustmentValue !== 0) {
+          setTimerAdjustment({ value: adjustmentValue, show: true });
+          // Play appropriate sound
+          if (adjustmentValue > 0) {
+            playSound('unlock'); // Reuse unlock sound for positive feedback
+          }
+          // Hide after 2 seconds
+          setTimeout(() => {
+            setTimerAdjustment(prev => ({ ...prev, show: false }));
+          }, 2000);
+        }
+      }
+      lastMessageCountRef.current = messages.length;
+    }
+  }, [timeRemaining, messages.length, playSound]);
 
   // Auto-scroll to bottom when messages change or when loading
   useEffect(() => {
@@ -294,10 +325,27 @@ export default function MobileTrainingScreen({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`px-3 py-1.5 rounded-full ${timerBg} transition-colors`}>
+          <div className={`px-3 py-1.5 rounded-full ${timerBg} transition-colors relative`}>
             <span className={`font-mono font-bold ${timerColor} transition-colors`}>
               {formatTime(timeRemaining)}
             </span>
+            {/* Timer Adjustment Indicator */}
+            <AnimatePresence>
+              {timerAdjustment.show && timerAdjustment.value !== 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.5 }}
+                  animate={{ opacity: 1, y: -20, scale: 1 }}
+                  exit={{ opacity: 0, y: -30, scale: 0.5 }}
+                  className={`absolute -top-1 left-1/2 transform -translate-x-1/2 px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${
+                    timerAdjustment.value > 0 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-red-500 text-white'
+                  }`}
+                >
+                  {timerAdjustment.value > 0 ? '+' : ''}{timerAdjustment.value}s
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <button
             onClick={onEndTraining}
