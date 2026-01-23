@@ -117,12 +117,24 @@ export const HeroSection = ({ onQuickPractice, onStartQuickPractice }: HeroSecti
         {/* Quick Practice Button */}
         <motion.button
           onClick={handleQuickPractice}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-full transition-all shadow-lg"
-          whileHover={{ scale: 1.05, boxShadow: '0 10px 40px rgba(139, 92, 246, 0.4)' }}
+          className="relative inline-flex items-center gap-3 px-10 py-5 bg-[#1B4D7A] hover:bg-[#0f3a5d] text-white font-bold rounded-full transition-all text-xl border-2 border-white/50"
+          whileHover={{ scale: 1.08, boxShadow: '0 0 30px rgba(255, 255, 255, 0.7)' }}
           whileTap={{ scale: 0.95 }}
+          animate={{ 
+            boxShadow: [
+              '0 0 15px rgba(255, 255, 255, 0.4)',
+              '0 0 30px rgba(255, 255, 255, 0.7)',
+              '0 0 15px rgba(255, 255, 255, 0.4)'
+            ]
+          }}
+          transition={{ 
+            boxShadow: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+          }}
         >
-          <Zap className="w-5 h-5" />
-          Quick Practice - Jump Right In!
+          {/* Animated ring effect */}
+          <span className="absolute inset-0 rounded-full border-2 border-white animate-ping opacity-30"></span>
+          <Zap className="w-7 h-7" />
+          Quick Practice - Start your interactive journey here!
         </motion.button>
 
         {/* DEMO MODE Watermark */}
