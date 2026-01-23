@@ -314,17 +314,33 @@ export default function Home() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, { role: 'user', content: userMessage }], drug: currentDrug, persona: currentPersona })
+        body: JSON.stringify({ 
+          messages: [...messages, { role: 'user', content: userMessage }], 
+          drug: currentDrug, 
+          persona: currentPersona,
+          timeRemaining 
+        })
       });
       const data = await response.json();
       // Handle both successful response and error response
       const assistantMessage = data.message || "I'm considering what you've said. Could you tell me more?";
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+      
+      // Apply dynamic timer adjustment based on response quality
+      if (data.assessment && data.assessment.timerAdjustment && timeRemaining > 0) {
+        setTimeRemaining(prev => {
+          // Don't adjust if in unlimited mode (-1)
+          if (prev === -1) return prev;
+          // Apply adjustment but ensure timer doesn't go below 5 seconds (give user a chance)
+          const newTime = Math.max(5, prev + data.assessment.timerAdjustment);
+          return newTime;
+        });
+      }
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble responding. Let's continue our discussion." }]);
     }
     setIsLoading(false);
-  }, [input, isLoading, messages, currentDrug, currentPersona]);
+  }, [input, isLoading, messages, currentDrug, currentPersona, timeRemaining]);
 
   const resetTraining = () => {
     setStage('landing');
