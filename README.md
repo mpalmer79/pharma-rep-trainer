@@ -20,7 +20,7 @@
 
 ## Overview
 
-PharmaRep Trainer is an AI-powered sales training and coaching platform designed for pharmaceutical and life sciences organizations operating in regulated environments.
+PharmaRep Trainer is an AI-powered sales training and coaching platform designed for pharmaceutical and life science organizations operating in regulated environments.
 
 Unlike traditional role-play simulators, PharmaRep Trainer delivers explainable coaching intelligence, adaptive training journeys, and compliance-ready audit artifacts that support onboarding, continuous improvement, and managerial oversight.
 
