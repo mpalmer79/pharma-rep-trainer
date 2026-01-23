@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, X } from 'lucide-react';
+import { Mic, MicOff, X, AlertTriangle } from 'lucide-react';
 import { Persona } from '@/types';
 import { Drug } from '@/types';
 import { useSound } from '@/hooks/useSound';
@@ -363,9 +363,10 @@ export default function MobileTrainingScreen({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-red-500 text-white text-center py-2 text-sm font-semibold overflow-hidden"
+            className="bg-red-500 text-white text-center py-2 text-sm font-semibold overflow-hidden flex items-center justify-center gap-2"
           >
-            ⚠️ Time running out! Wrap up your conversation.
+            <AlertTriangle className="w-4 h-4" />
+            Time running out! Wrap up your conversation.
           </motion.div>
         )}
       </AnimatePresence>
@@ -377,9 +378,10 @@ export default function MobileTrainingScreen({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-amber-500 text-white text-center py-2 text-sm font-medium overflow-hidden"
+            className="bg-amber-500 text-white text-center py-2 text-sm font-medium overflow-hidden flex items-center justify-center gap-2"
           >
-            🎤 {voiceError}
+            <Mic className="w-4 h-4" />
+            {voiceError}
           </motion.div>
         )}
       </AnimatePresence>
@@ -462,7 +464,7 @@ export default function MobileTrainingScreen({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? "Listening..." : "Type or tap 🎤 to speak..."}
+              placeholder={isListening ? "Listening..." : "Type your response or tap mic to speak..."}
               disabled={isLoading || isListening}
               rows={1}
               className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4D7A] dark:focus:ring-blue-500 focus:border-transparent resize-none text-sm disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${
@@ -515,7 +517,7 @@ export default function MobileTrainingScreen({
         <div className="flex items-center justify-between mt-2">
           <p className="text-xs text-gray-400 dark:text-gray-500">
             {isVoiceSupported 
-              ? 'Enter to send • 🎤 for voice input'
+              ? 'Enter to send • Mic button for voice input'
               : 'Press Enter to send • Shift+Enter for new line'
             }
           </p>
