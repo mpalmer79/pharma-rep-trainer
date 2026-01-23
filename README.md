@@ -301,7 +301,7 @@ This project is structured to support commercialization through:
 ## Disclaimer
 
 This project is a technical and architectural demonstration.  
-It is not affiliated with any pharmaceutical company and does not provide medical or regulatory advice.
+It is not affiliated with any pharmaceutical company and does NOT provide medical or regulatory advice.
 
 ---
 
