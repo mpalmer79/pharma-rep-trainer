@@ -24,7 +24,7 @@ interface FeedbackData {
   overall?: number;
   strengths: string[];
   improvements: string[];
-  tips: string | string[];
+  tips?: string | string[] | undefined;
 }
 
 interface FeedbackStageProps {
@@ -150,12 +150,13 @@ export const FeedbackStage = ({
     closing: displayScore,
   };
 
-  // Normalize tips to always be an array
-  const tipsArray = feedback.tips
-    ? Array.isArray(feedback.tips)
-      ? feedback.tips
-      : [feedback.tips]
-    : [];
+  // Normalize tips to always be an array with explicit type handling
+  const tipsArray: string[] = (() => {
+    if (!feedback.tips) return [];
+    if (Array.isArray(feedback.tips)) return feedback.tips;
+    if (typeof feedback.tips === 'string') return [feedback.tips];
+    return [];
+  })();
 
   // Trigger confetti and celebration sound for high scores
   useEffect(() => {
