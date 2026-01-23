@@ -24,6 +24,7 @@ import {
   RolesSection,
   AboutSection,
   SimulatorSection,
+  GameJourneySection,
   CTASection,
   Footer
 } from '@/components/landing';
@@ -426,6 +427,7 @@ export default function Home() {
         <PlatformSection />
         <TrainingProgramsSection />
         <StatsBanner />
+        <GameJourneySection />
         <RolesSection />
         <AboutSection />
         
