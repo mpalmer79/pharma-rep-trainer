@@ -66,3 +66,14 @@ export interface UserStats {
 }
 
 export type Stage = 'setup' | 'training' | 'feedback';
+
+// Real-time response assessment for dynamic timer
+export interface ResponseAssessment {
+  attentionGrabbing: number;    // 1-10: How well did they capture attention?
+  salesQuality: number;         // 1-10: Professional sales technique
+  accuracy: number;             // 1-10: Correct product/clinical info
+  rapport: number;              // 1-10: Building relationship with persona
+  overallImpression: number;    // 1-10: Combined score
+  timerAdjustment: number;      // Seconds to add (positive) or subtract (negative)
+  briefFeedback?: string;       // Optional quick tip
+}
