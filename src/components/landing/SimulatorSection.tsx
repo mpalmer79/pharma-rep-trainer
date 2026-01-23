@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { drugs } from '@/data/drugs';
 import { personas } from '@/data/personas';
 import { useState } from 'react';
-import { Clock, Infinity, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { Clock, Infinity, ChevronDown, ChevronUp, Lock, Zap } from 'lucide-react';
 import ObjectionBank from '@/components/ObjectionBank';
 import CoachingToggle from '@/components/CoachingToggle';
 import LockedPersonaOverlay from '@/components/LockedPersonaOverlay';
@@ -106,11 +106,16 @@ export const SimulatorSection = ({
           viewport={{ once: true }}
           className="text-center mb-12"
         >
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E67E22]/10 rounded-full text-[#E67E22] text-sm font-medium mb-4">
+            <Zap className="w-4 h-4" />
+            <span>Your responses are scored in real-time</span>
+          </div>
           <h2 className="text-3xl md:text-4xl font-bold text-[#1B4D7A] dark:text-white mb-4">
             Try the Simulator
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Select a product and physician persona to begin your practice session
+            Select a product and physician persona to begin your practice session. 
+            <span className="text-[#E67E22] font-medium"> Great responses earn bonus time!</span>
           </p>
           
           {/* Progression Tier Badge */}
